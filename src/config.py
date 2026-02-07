@@ -1,11 +1,6 @@
 DRY_RUN = False
 
-N_FOLDS = 5
 SEED = 123
-HOLDOUT_TR = 0.7
-MC_TR = 0.5
-MC_TS = 0.2
-KFOLD_N_REPEATS = 2
 TRY_MPS = True
 if DRY_RUN:
     N_SAMPLES = 2
