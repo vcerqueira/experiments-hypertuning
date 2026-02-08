@@ -1,6 +1,10 @@
-from sklearn.model_selection import ParameterSampler
+from src.neural.config_pool import NEURAL_CONFIG_POOL
+from src.neural.param_samples import ConfigSampler
 
-from src.config import SEED
+model = 'NHITS'
+
+config_pool = NEURAL_CONFIG_POOL[model]
 
 
-ParameterSampler(param_distributions={}, n_iter=10, random_state=SEED)
+config_df = ConfigSampler.generate_samples(config_pool=config_pool, num_samples=4, return_df=True)
+
