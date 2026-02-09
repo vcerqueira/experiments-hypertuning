@@ -11,13 +11,15 @@ from src.loaders.base import DatasetLoader
 class ChronosDataset(DatasetLoader):
     # https://github.com/autogluon/fev/blob/main/benchmarks/chronos_zeroshot/results/auto_arima.csv
     # https://github.com/SalesforceAIResearch/gift-eval/blob/main/results/naive/all_results.csv
+    # https://huggingface.co/datasets/autogluon/chronos_datasets
+    # https://github.com/autogluon/fev
 
     DATASET_NAME = 'CHRONOS'
     REPO_ID = 'autogluon/chronos_datasets'
 
     M4_HORIZON_MAP = {
         "Y": 6,
-        "Q": 4,
+        "Q": 8,
         "M": 18,
         "MS": 18,
         "ME": 18,
@@ -33,7 +35,7 @@ class ChronosDataset(DatasetLoader):
         "MS": 12,
         "ME": 12,
         "W": 8,
-        "D": 30,
+        "D": 14,
         "H": 48,
         "T": 48,
         "S": 60,

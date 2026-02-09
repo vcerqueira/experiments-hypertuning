@@ -1,4 +1,4 @@
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Dict
 import hashlib
 import json
 
@@ -39,7 +39,7 @@ from neuralforecast.models import (GRU,
                                    DilatedRNN)
 
 
-class ModelsConfig:
+class AutoModelsConfig:
     AUTO_MODEL_CLASSES = {
         'AutoTFT': AutoTFT,
         'AutoNBEATS': AutoNBEATS,
@@ -79,7 +79,7 @@ class ModelsConfig:
 
     NEED_CPU = ['AutoGRU',
                 'AutoDeepNPTS',
-                #'AutoTFT',
+                # 'AutoTFT',
                 'AutoPatchTST',
                 'AutoDeepAR',
                 'AutoLSTM',
@@ -187,3 +187,82 @@ class ModelsConfig:
             optim_models.append(opm_mod)
 
         return optim_models
+
+
+class ModelsConfig:
+    MODEL_CLASSES = {
+        'KAN': KAN,
+        'MLP': MLP,
+        'DLinear': DLinear,
+        'NHITS': NHITS,
+        'DeepNPTS': DeepNPTS,
+        'NBEATS': NBEATS,
+        'TiDE': TiDE,
+        'NLinear': NLinear,
+        'TFT': TFT,
+        'PatchTST': PatchTST,
+        'GRU': GRU,
+        'DeepAR': DeepAR,
+        'LSTM': LSTM,
+        'DilatedRNN': DilatedRNN,
+        'TCN': TCN,
+    }
+
+    NEED_CPU = ['GRU',
+                'DeepNPTS',
+                # 'TFT',
+                'PatchTST',
+                'DeepAR',
+                'LSTM',
+                'TiDE',
+                'NLinear',
+                'KAN',
+                'DilatedRNN',
+                'TCN']
+
+    @classmethod
+    def create_model_instance(cls,
+                              model_class: str,
+                              model_config: Dict,
+                              horizon: int,
+                              try_mps: bool = True,
+                              limit_epochs: bool = False,
+                              limit_val_batches: Optional[int] = None):
+
+        pass
+
+    @classmethod
+    def get_auto_nf_models(cls,
+                           horizon: int,
+                           n_samples: int,
+                           try_mps: bool = True,
+                           limit_epochs: bool = False,
+                           limit_val_batches: Optional[int] = None):
+
+        models = []
+        for mod_name, mod in cls.AUTO_MODEL_CLASSES.items():
+            if try_mps:
+                if mod_name in cls.NEED_CPU:
+                    mod.default_config['accelerator'] = 'cpu'
+                else:
+                    mod.default_config['accelerator'] = 'mps'
+            else:
+                mod.default_config['accelerator'] = 'cpu'
+
+            if limit_epochs:
+                mod.default_config['max_steps'] = 2
+
+            if limit_val_batches is not None:
+                mod.default_config['limit_val_batches'] = limit_val_batches
+
+            model_instance = mod(
+                h=horizon,
+                num_samples=n_samples,
+                alias=mod_name,
+                valid_loss=MAE(),
+                refit_with_val=True,
+            )
+
+            models.append(model_instance)
+
+        return models
