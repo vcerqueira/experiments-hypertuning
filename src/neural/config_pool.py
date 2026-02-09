@@ -1,5 +1,7 @@
 from ray import tune
 
+# todo acrescentar params
+
 NEURAL_CONFIG_POOL = {
     'NHITS': {
         "input_size_multiplier": [1, 2, 3, 4, 5],

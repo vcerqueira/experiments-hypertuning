@@ -208,6 +208,8 @@ class ModelsConfig:
         'TCN': TCN,
     }
 
+    model_names = [*MODEL_CLASSES]
+
     NEED_CPU = ['GRU',
                 'DeepNPTS',
                 # 'TFT',
@@ -225,11 +227,28 @@ class ModelsConfig:
                               model_class: str,
                               model_config: Dict,
                               horizon: int,
+                              input_size: int,
                               try_mps: bool = True,
                               limit_epochs: bool = False,
                               limit_val_batches: Optional[int] = None):
 
-        pass
+        accelerator = 'mps' if try_mps else 'cpu'
+
+        base_config = {'accelerator': accelerator,
+                       'horizon': horizon,
+                       'input_size': input_size}
+
+        config = {**model_config, **base_config}
+
+        if limit_epochs:
+            config['max_steps'] = 2
+
+        if limit_val_batches is not None:
+            config['limit_val_batches'] = limit_val_batches
+
+        model_instance = cls.MODEL_CLASSES[model_class](**config)
+
+        return model_instance
 
     @classmethod
     def get_auto_nf_models(cls,
