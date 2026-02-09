@@ -234,9 +234,11 @@ class ModelsConfig:
 
         accelerator = 'mps' if try_mps else 'cpu'
 
+        input_multiplier = model_config.pop('input_size_multiplier')
+
         base_config = {'accelerator': accelerator,
-                       'horizon': horizon,
-                       'input_size': input_size}
+                       'h': horizon,
+                       'input_size': input_size*input_multiplier,}
 
         config = {**model_config, **base_config}
 

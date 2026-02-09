@@ -4,7 +4,7 @@ from ray import tune
 
 NEURAL_CONFIG_POOL = {
     'NHITS': {
-        "input_size_multiplier": [1, 2, 3, 4, 5],
+        "input_size_multiplier": tune.choice([1, 2]),
         "n_pool_kernel_size": tune.choice(
             [
                 [2, 2, 1],
