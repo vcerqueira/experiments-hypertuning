@@ -59,7 +59,7 @@ class ConfigSampler:
 
     @staticmethod
     def get_config_id(config):
-        hash_len = 10
+        hash_len = 15
 
         config_str = json.dumps(config, sort_keys=True)
         config_id = hashlib.md5(config_str.encode()).hexdigest()[:hash_len]

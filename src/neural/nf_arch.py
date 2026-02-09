@@ -191,21 +191,21 @@ class AutoModelsConfig:
 
 class ModelsConfig:
     MODEL_CLASSES = {
-        'KAN': KAN,
-        'MLP': MLP,
-        'DLinear': DLinear,
+        # 'KAN': KAN,
+        # 'MLP': MLP,
+        # 'DLinear': DLinear,
         'NHITS': NHITS,
-        'DeepNPTS': DeepNPTS,
-        'NBEATS': NBEATS,
-        'TiDE': TiDE,
-        'NLinear': NLinear,
-        'TFT': TFT,
+        # 'DeepNPTS': DeepNPTS,
+        # 'NBEATS': NBEATS,
+        # 'TiDE': TiDE,
+        # 'NLinear': NLinear,
+        # 'TFT': TFT,
         'PatchTST': PatchTST,
-        'GRU': GRU,
-        'DeepAR': DeepAR,
-        'LSTM': LSTM,
-        'DilatedRNN': DilatedRNN,
-        'TCN': TCN,
+        # 'GRU': GRU,
+        # 'DeepAR': DeepAR,
+        # 'LSTM': LSTM,
+        # 'DilatedRNN': DilatedRNN,
+        # 'TCN': TCN,
     }
 
     model_names = [*MODEL_CLASSES]

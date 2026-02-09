@@ -1,11 +1,12 @@
-DRY_RUN = False
+DRY_RUN = True
 
 SEED = 123
 TRY_MPS = True
 if DRY_RUN:
     LIMIT_EPOCHS = True
+    N_SAMPLES = 100
+    MAX_SAMPLES = 50
 else:
     LIMIT_EPOCHS = False
-
-N_SAMPLES = 1000
-MAX_SAMPLES = 500
+    N_SAMPLES = 1000
+    MAX_SAMPLES = 500

@@ -6,7 +6,7 @@ from neuralforecast import NeuralForecast
 
 from src.neural.nf_arch import ModelsConfig
 from src.loaders import ChronosDataset, LongHorizonDatasetR
-from src.config import N_SAMPLES, SEED, LIMIT_EPOCHS, TRY_MPS
+from src.config import N_SAMPLES, SEED, TRY_MPS
 from src.neural.config_pool import NEURAL_CONFIG_POOL
 from src.neural.param_samples import ConfigSampler
 
@@ -39,6 +39,8 @@ if __name__ == '__main__':
                                                      random_state=SEED)
 
         for config_sample in config_list:
+            # todo stop when no of configs reaches max_samples
+
             cfg_id = config_sample['config_id'].pop()
 
             outer_fp = results_dir / f'{model_nm},{target},{cfg_id},outer.csv'
@@ -48,8 +50,7 @@ if __name__ == '__main__':
                                                        model_config=config_sample,
                                                        horizon=horizon,
                                                        input_size=n_lags,
-                                                       try_mps=TRY_MPS,
-                                                       limit_epochs=LIMIT_EPOCHS)
+                                                       try_mps=TRY_MPS)
 
             CV_SETUP = {
                 'val_size': horizon,
