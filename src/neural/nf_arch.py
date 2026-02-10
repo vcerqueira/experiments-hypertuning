@@ -238,7 +238,7 @@ class ModelsConfig:
 
         base_config = {'accelerator': accelerator,
                        'h': horizon,
-                       'input_size': input_size*input_multiplier,}
+                       'input_size': input_size * input_multiplier, }
 
         config = {**model_config, **base_config}
 
@@ -251,39 +251,3 @@ class ModelsConfig:
         model_instance = cls.MODEL_CLASSES[model_class](**config)
 
         return model_instance
-
-    @classmethod
-    def get_auto_nf_models(cls,
-                           horizon: int,
-                           n_samples: int,
-                           try_mps: bool = True,
-                           limit_epochs: bool = False,
-                           limit_val_batches: Optional[int] = None):
-
-        models = []
-        for mod_name, mod in cls.AUTO_MODEL_CLASSES.items():
-            if try_mps:
-                if mod_name in cls.NEED_CPU:
-                    mod.default_config['accelerator'] = 'cpu'
-                else:
-                    mod.default_config['accelerator'] = 'mps'
-            else:
-                mod.default_config['accelerator'] = 'cpu'
-
-            if limit_epochs:
-                mod.default_config['max_steps'] = 2
-
-            if limit_val_batches is not None:
-                mod.default_config['limit_val_batches'] = limit_val_batches
-
-            model_instance = mod(
-                h=horizon,
-                num_samples=n_samples,
-                alias=mod_name,
-                valid_loss=MAE(),
-                refit_with_val=True,
-            )
-
-            models.append(model_instance)
-
-        return models

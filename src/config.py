@@ -1,4 +1,4 @@
-DRY_RUN = True
+DRY_RUN = False
 
 SEED = 123
 TRY_MPS = True
