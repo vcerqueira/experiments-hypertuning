@@ -1,7 +1,5 @@
 from ray import tune
 
-# todo acrescentar params
-
 NEURAL_CONFIG_POOL = {
     'NHITS': {
         "input_size_multiplier": tune.choice([1, 2]),
@@ -44,7 +42,6 @@ NEURAL_CONFIG_POOL = {
             ]
         ),
 
-        # mlp_units: list = 3 * [[512, 512]]
         "learning_rate": tune.loguniform(1e-4, 1e-1),
         "scaler_type": tune.choice([None,
                                     "robust",

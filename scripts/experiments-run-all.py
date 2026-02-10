@@ -6,7 +6,7 @@ from neuralforecast import NeuralForecast
 
 from src.neural.nf_arch import ModelsConfig
 from src.loaders import ChronosDataset, LongHorizonDatasetR
-from src.config import N_SAMPLES, SEED, TRY_MPS
+from src.config import N_SAMPLES, SEED, TRY_MPS, MAX_SAMPLES
 from src.neural.config_pool import NEURAL_CONFIG_POOL
 from src.neural.param_samples import ConfigSampler
 
@@ -18,7 +18,7 @@ os.environ['TUNE_DISABLE_STRICT_METRIC_CHECKING'] = '1'
 target = 'monash_tourism_monthly'
 
 _, horizon, n_lags, _, _ = ChronosDataset.load_everything(target)
-df, horizon, n_lags, freq, seas_len = ChronosDataset.load_everything(target, min_n_instances=2*(n_lags+horizon))
+df, horizon, n_lags, freq, seas_len = ChronosDataset.load_everything(target, min_n_instances=2 * (n_lags + horizon))
 # df, horizon, n_lags, freq, seas_len = LongHorizonDatasetR.load_everything(target, resample_to='D')
 
 results_dir = Path('../assets/results')
@@ -27,6 +27,13 @@ results_dir = Path('../assets/results')
 # -- estimation_train is used for hypertuning
 # -- estimation_test is only used at the end to evaluate hypertuning process
 in_set, _ = ChronosDataset.time_wise_split(df, horizon)
+
+CV_SETUP = {
+    'val_size': horizon,
+    'test_size': horizon,
+    'step_size': 1,
+    'n_windows': None,
+}
 
 if __name__ == '__main__':
     print(results_dir.absolute())
@@ -40,7 +47,6 @@ if __name__ == '__main__':
                                                      random_state=SEED)
 
         for config_sample in config_list:
-            # todo stop when no of configs reaches max_samples
             print(config_sample)
 
             cfg_id = config_sample.pop('config_id')
@@ -49,7 +55,18 @@ if __name__ == '__main__':
             inner_fp = results_dir / f'{model_nm},{target},{cfg_id},inner.csv'
 
             if outer_fp.exists():
+                print(f"Skipping {model_nm},{target},{cfg_id},outer.csv -- Already exists")
                 continue
+
+            # check if no of configs reaches MAX_SAMPLES
+            config_pattern = f"{model_nm},{target}"
+            config_files = list(results_dir.glob(f"{config_pattern},*outer.csv"))
+            n_configs = len(config_files)
+            if n_configs >= MAX_SAMPLES:
+                print(f"No of configs reached MAX_SAMPLES for {model_nm},{target}")
+                continue
+
+            print(f"Running config {n_configs} / {MAX_SAMPLES}")
 
             model = ModelsConfig.create_model_instance(model_class=model_nm,
                                                        model_config=config_sample,
@@ -57,18 +74,15 @@ if __name__ == '__main__':
                                                        input_size=n_lags,
                                                        try_mps=TRY_MPS)
 
-            CV_SETUP = {
-                'val_size': horizon,
-                'test_size': horizon,
-                'step_size': 1,
-                'n_windows': None,
-            }
+            try:
+                nf_inner = NeuralForecast(models=[model], freq=freq)
+                cv_inner = nf_inner.cross_validation(df=in_set, **CV_SETUP)
 
-            nf_inner = NeuralForecast(models=[model], freq=freq)
-            cv_inner = nf_inner.cross_validation(df=in_set, **CV_SETUP)
+                nf_outer = NeuralForecast(models=[model], freq=freq)
+                cv_outer = nf_outer.cross_validation(df=df, **CV_SETUP)
 
-            nf_outer = NeuralForecast(models=[model], freq=freq)
-            cv_outer = nf_outer.cross_validation(df=df, **CV_SETUP)
-
-            cv_inner.to_csv(inner_fp, index=False)
-            cv_outer.to_csv(outer_fp, index=False)
+                cv_inner.to_csv(inner_fp, index=False)
+                cv_outer.to_csv(outer_fp, index=False)
+            except NotImplementedError:
+                print(f"Error on {model_nm},{target},{cfg_id}")
+                continue

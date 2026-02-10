@@ -8,5 +8,5 @@ if DRY_RUN:
     MAX_SAMPLES = 50
 else:
     LIMIT_EPOCHS = False
-    N_SAMPLES = 1000
+    N_SAMPLES = 3000
     MAX_SAMPLES = 500
