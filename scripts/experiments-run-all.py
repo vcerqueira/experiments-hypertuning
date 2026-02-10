@@ -42,9 +42,7 @@ if __name__ == '__main__':
         # model = 'NHITS'
 
         config_pool = NEURAL_CONFIG_POOL[model_nm]
-        config_list = ConfigSampler.generate_samples(config_pool=config_pool,
-                                                     num_samples=N_SAMPLES,
-                                                     random_state=SEED)
+        config_list = ConfigSampler.generate_samples(config_pool=config_pool, num_samples=N_SAMPLES, random_state=SEED)
 
         for config_sample in config_list:
             print(config_sample)
