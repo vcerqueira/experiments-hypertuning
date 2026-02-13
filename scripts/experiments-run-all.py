@@ -15,7 +15,7 @@ warnings.filterwarnings('ignore')
 os.environ['TUNE_DISABLE_STRICT_METRIC_CHECKING'] = '1'
 
 # ---- data loading and partitioning
-target = 'monash_tourism_monthly'
+target = 'monash_m3_quarterly'
 
 _, horizon, n_lags, _, _ = ChronosDataset.load_everything(target)
 df, horizon, n_lags, freq, seas_len = ChronosDataset.load_everything(target, min_n_instances=2 * (n_lags + horizon))
@@ -28,12 +28,7 @@ results_dir = Path('../assets/results')
 # -- estimation_test is only used at the end to evaluate hypertuning process
 in_set, _ = ChronosDataset.time_wise_split(df, horizon)
 
-CV_SETUP = {
-    'val_size': horizon,
-    'test_size': horizon,
-    'step_size': 1,
-    'n_windows': None,
-}
+CV_SETUP = {'val_size': horizon, 'test_size': horizon, 'step_size': 1, 'n_windows': None,}
 
 if __name__ == '__main__':
     print(results_dir.absolute())
