@@ -63,9 +63,9 @@ NEURAL_CONFIG_POOL = {
 
     'PatchTST': {
         "input_size_multiplier": tune.choice([1, 2, 3]),
-        "hidden_size": tune.choice([16, 128, 256]),
+        "hidden_size": tune.choice([16, 32, 128, 256]),
         "linear_hidden_size": tune.choice([64, 128, 256]),
-        "n_heads": tune.choice([2, 4, 8, 16, 24]),
+        "n_heads": tune.choice([2, 4, 8, 16]),
         "encoder_layers": tune.choice([1, 2, 3]),
         "patch_len": tune.choice([16, 24]),
         "stride": tune.choice([2, 4, 8]),
