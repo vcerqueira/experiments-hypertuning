@@ -17,7 +17,7 @@ from src.utils.reading_data import read_cv_results
 # model = 'MLP'
 # target = 'monash_m1_monthly'
 # target = 'monash_m3_quarterly'
-target = 'monash_m3_monthly'
+target = 'monash_tourism_monthly'
 partition = 'outer'
 
 MODEL_LIST = ['KAN',
