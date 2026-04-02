@@ -21,7 +21,7 @@ _, horizon, n_lags, _, _ = ChronosDataset.load_everything(target)
 df, horizon, n_lags, freq, seas_len = ChronosDataset.load_everything(target, min_n_instances=2 * (n_lags + horizon))
 # df, horizon, n_lags, freq, seas_len = LongHorizonDatasetR.load_everything(target, resample_to='D')
 
-results_dir = Path('../assets/results')
+results_dir = Path('../../../assets/results')
 
 # - split dataset by time
 # -- estimation_train is used for hypertuning

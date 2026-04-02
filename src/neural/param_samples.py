@@ -23,6 +23,14 @@ class ConfigSampler:
     #
     # df = pd.DataFrame(sample_list_).set_index('config_id')
 
+    BAD_CONFIGS = ['fd1d8da7684e79a15d7d',
+                   '2b034fe8fd6d9ee361de',
+                   'aefb0e3b650af6c4f8ea',
+                   '856f1172fc2f3108b2eb',
+                   '6c6aa783172ef07d645d',
+                   '09316b60a187415cd7dc',
+                   'fd9e39298706aa752095']
+
     @classmethod
     def generate_samples(cls,
                          config_pool: Dict,
@@ -44,7 +52,10 @@ class ConfigSampler:
             }
 
             sample['config_id'] = cls.get_config_id(sample)
+
             sample_list.append(sample)
+
+        sample_list = [sample for sample in sample_list if sample['config_id'] not in cls.BAD_CONFIGS]
 
         if return_df:
             df = pd.DataFrame(sample_list).set_index('config_id')
