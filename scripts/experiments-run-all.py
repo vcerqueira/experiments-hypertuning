@@ -15,7 +15,7 @@ warnings.filterwarnings('ignore')
 os.environ['TUNE_DISABLE_STRICT_METRIC_CHECKING'] = '1'
 
 # ---- data loading and partitioning
-target = 'monash_tourism_monthly'
+target = 'monash_tourism_quarterly'
 
 _, horizon, n_lags, _, _ = ChronosDataset.load_everything(target)
 df, horizon, n_lags, freq, seas_len = ChronosDataset.load_everything(target, min_n_instances=2 * (n_lags + horizon))
@@ -28,7 +28,7 @@ results_dir = Path('../assets/results')
 # -- estimation_test is only used at the end to evaluate hypertuning process
 in_set, _ = ChronosDataset.time_wise_split(df, horizon)
 
-CV_SETUP = {'val_size': horizon, 'test_size': horizon, 'step_size': 1, 'n_windows': None,}
+CV_SETUP = {'val_size': horizon, 'test_size': horizon, 'step_size': 1, 'n_windows': None, }
 
 if __name__ == '__main__':
     print(results_dir.absolute())
@@ -42,6 +42,14 @@ if __name__ == '__main__':
         for config_sample in config_list:
             print(config_sample)
 
+            # check if no of configs reaches MAX_SAMPLES
+            config_pattern = f"{model_nm},{target}"
+            config_files = list(results_dir.glob(f"{config_pattern},*outer.csv"))
+            n_configs = len(config_files)
+            if n_configs >= MAX_SAMPLES:
+                print(f"No of configs reached MAX_SAMPLES for {model_nm},{target}")
+                break
+
             cfg_id = config_sample.pop('config_id')
 
             outer_fp = results_dir / f'{model_nm},{target},{cfg_id},outer.csv'
@@ -49,14 +57,6 @@ if __name__ == '__main__':
 
             if outer_fp.exists():
                 print(f"Skipping {model_nm},{target},{cfg_id},outer.csv -- Already exists")
-                continue
-
-            # check if no of configs reaches MAX_SAMPLES
-            config_pattern = f"{model_nm},{target}"
-            config_files = list(results_dir.glob(f"{config_pattern},*outer.csv"))
-            n_configs = len(config_files)
-            if n_configs >= MAX_SAMPLES:
-                print(f"No of configs reached MAX_SAMPLES for {model_nm},{target}")
                 continue
 
             print(f"Running config {n_configs} / {MAX_SAMPLES}")

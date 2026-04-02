@@ -132,7 +132,6 @@ class AutoModelsConfig:
         for mod in nf.models:
             print(f"Model: {mod.alias}")
             for i, res in enumerate(mod.results):
-                print(res)
                 res.config['learning_rate'] = np.round(res.config['learning_rate'], 5)
 
                 conf_str = {k: str(v) for k, v in res.config.items()}
@@ -191,17 +190,17 @@ class AutoModelsConfig:
 
 class ModelsConfig:
     MODEL_CLASSES = {
-        # 'KAN': KAN,
-        # 'MLP': MLP,
+        'KAN': KAN,
+        'MLP': MLP,
         # 'DLinear': DLinear,
         'NHITS': NHITS,
         # 'DeepNPTS': DeepNPTS,
         # 'NBEATS': NBEATS,
         # 'TiDE': TiDE,
         # 'NLinear': NLinear,
-        # 'TFT': TFT,
+        'TFT': TFT,
         'PatchTST': PatchTST,
-        # 'GRU': GRU,
+        'GRU': GRU,
         # 'DeepAR': DeepAR,
         # 'LSTM': LSTM,
         # 'DilatedRNN': DilatedRNN,
@@ -210,17 +209,19 @@ class ModelsConfig:
 
     model_names = [*MODEL_CLASSES]
 
-    NEED_CPU = ['GRU',
-                'DeepNPTS',
-                # 'TFT',
-                'PatchTST',
-                'DeepAR',
-                'LSTM',
-                'TiDE',
-                'NLinear',
-                'KAN',
-                'DilatedRNN',
-                'TCN']
+    NEED_CPU = [
+        # 'GRU',
+        # 'DeepNPTS',
+        # 'TFT',
+        # 'PatchTST',
+        # 'DeepAR',
+        # 'LSTM',
+        # 'TiDE',
+        # 'NLinear',
+        # 'KAN',
+        # 'DilatedRNN',
+        # 'TCN'
+    ]
 
     @classmethod
     def create_model_instance(cls,
@@ -239,6 +240,10 @@ class ModelsConfig:
         base_config = {'accelerator': accelerator,
                        'h': horizon,
                        'input_size': input_size * input_multiplier, }
+
+        if 'inference_input_size_multiplier' in model_config:
+            inference_input_size_multiplier = model_config.pop('inference_input_size_multiplier')
+            base_config['inference_input_size'] = input_size * inference_input_size_multiplier
 
         config = {**model_config, **base_config}
 
