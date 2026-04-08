@@ -142,7 +142,7 @@ NEURAL_CONFIG_POOL = {
         "start_padding_enabled": tune.choice([True, False]),
         "context_size": tune.choice([2, 5, 10, 25, 50]),
         "decoder_hidden_size": tune.choice([8, 16, 32, 64, 128]),
-        "scaler_type": tune.choice([None, "robust", "standard"]),
+        "scaler_type": tune.choice(["robust", "standard"]),
         "decoder_layers": tune.choice([1, 2, 3]),
         "learning_rate": tune.loguniform(1e-4, 1e-1),
         "max_steps": tune.choice([500, 1000, 1500]),
