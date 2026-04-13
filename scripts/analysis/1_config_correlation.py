@@ -15,7 +15,7 @@ from src.loaders import ChronosDataset
 # NHITS,monash_m1_monthly,0a37cbc4d85c6d5e13d7,outer
 model = 'NHITS'
 target = 'monash_m1_monthly'
-set = 'outer'
+partition = 'outer'
 
 df, horizon, n_lags, freq, seas_len = ChronosDataset.load_everything(target)
 # df, horizon, n_lags, freq, seas_len = LongHorizonDatasetR.load_everything(target, resample_to='D')
@@ -24,7 +24,7 @@ in_set, _ = ChronosDataset.time_wise_split(df, horizon)
 # results_dir = Path('../assets/results')
 
 results_dir = Path() / 'assets' / 'results'
-pattern = f"{model},{target},*,{set}.csv"
+pattern = f"{model},{target},*,{partition}.csv"
 config_files = list(results_dir.glob(pattern))
 config_ids = [f.stem.split(',')[2] for f in config_files]
 
