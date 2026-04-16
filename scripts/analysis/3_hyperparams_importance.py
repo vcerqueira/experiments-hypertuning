@@ -41,4 +41,13 @@ config_pool = NEURAL_CONFIG_POOL[model]
 config_list = ConfigSampler.generate_samples(config_pool=config_pool, num_samples=N_SAMPLES, random_state=SEED)
 pprint(config_list[0])
 
+config_df = pd.DataFrame(config_list)
+err_long = (
+    err_df.rename_axis('unique_id')
+    .reset_index()
+    .melt(id_vars='unique_id', var_name='config_id', value_name='error_score')
+)
+
+err_with_config = err_long.merge(config_df, on='config_id', how='left')
+pprint(err_with_config.head().to_dict(orient='records')[0])
 

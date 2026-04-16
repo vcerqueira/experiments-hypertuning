@@ -25,7 +25,8 @@ MODEL_LIST = ['KAN',
               'NHITS',
               'TFT',
               'PatchTST',
-              'GRU']
+              # 'GRU'
+              ]
 LEARNING_CURVE = [1, 2, 5, 10, 15, 25, 50, 75, 100, 200, 300, 400]
 N_REPS = 50
 
