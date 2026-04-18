@@ -1,4 +1,8 @@
 numpy==1.26.4
-pandas==2.2.3
+pandas==3.0.2
 datasets==4.4.0
 neuralforecast==3.1.2
+modelradar
+optuna==4.8.0
+datasetsforecast==1.0.1
+python-dotenv==1.2.2

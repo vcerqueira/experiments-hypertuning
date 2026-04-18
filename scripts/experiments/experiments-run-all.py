@@ -5,7 +5,7 @@ from pathlib import Path
 from neuralforecast import NeuralForecast
 
 from src.neural.nf_arch import ModelsConfig
-from src.loaders import ChronosDataset, LongHorizonDatasetR
+from src.loaders import ChronosDataset, LongHorizonDataset
 from src.config import N_SAMPLES, SEED, TRY_MPS, MAX_SAMPLES
 from src.neural.config_pool import NEURAL_CONFIG_POOL
 from src.neural.param_samples import ConfigSampler
@@ -15,11 +15,17 @@ warnings.filterwarnings('ignore')
 os.environ['TUNE_DISABLE_STRICT_METRIC_CHECKING'] = '1'
 
 # ---- data loading and partitioning
-target = 'monash_m1_monthly'
+target = 'TrafficL'
+# "ETTm1": 96,
+#         "ETTm2": 96,
+#         "ECL": 96,
+#         "Exchange": 14,
+#         "TrafficL": 96,
+#         "Weather": 144,
 
 _, horizon, n_lags, _, _ = ChronosDataset.load_everything(target)
-df, horizon, n_lags, freq, seas_len = ChronosDataset.load_everything(target, min_n_instances=2 * (n_lags + horizon))
-# df, horizon, n_lags, freq, seas_len = LongHorizonDatasetR.load_everything(target, resample_to='D')
+# df, horizon, n_lags, freq, seas_len = ChronosDataset.load_everything(target, min_n_instances=2 * (n_lags + horizon))
+df, horizon, n_lags, freq, seas_len = LongHorizonDataset.load_everything(target, min_n_instances=2 * (n_lags + horizon))
 
 results_dir = Path('../assets/results')
 
