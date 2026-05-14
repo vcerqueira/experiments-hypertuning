@@ -193,9 +193,9 @@ class ModelsConfig:
         # 'KAN': KAN,
         # 'MLP': MLP,
         # 'NHITS': NHITS,
-        # 'TFT': TFT,
-        'PatchTST': PatchTST,
-        'GRU': GRU,
+        'TFT': TFT,
+        # 'PatchTST': PatchTST,
+        # 'GRU': GRU,
 
         # 'DLinear': DLinear,
         # 'DeepNPTS': DeepNPTS,

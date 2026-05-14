@@ -28,6 +28,8 @@ class ConfigSampler:
                    'aefb0e3b650af6c4f8ea',
                    '856f1172fc2f3108b2eb',
                    '6c6aa783172ef07d645d',
+                   'e23b2735de790f35e3b4',
+                   '0ae460bbd17da6e08ef9',
                    '09316b60a187415cd7dc',
                    'fd9e39298706aa752095']
 
@@ -52,6 +54,9 @@ class ConfigSampler:
             }
 
             sample['config_id'] = cls.get_config_id(sample)
+
+            # if sample['batch_size'] > 32:
+            #     continue
 
             sample_list.append(sample)
 
