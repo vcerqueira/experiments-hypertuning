@@ -10,9 +10,8 @@ from utilsforecast.losses import mase
 from src.loaders import ChronosDataset
 from src.utils.reading_data import read_cv_results
 from src.neural.config_pool import NEURAL_CONFIG_POOL
-from src.config import N_SAMPLES, SEED, TRY_MPS, MAX_SAMPLES
+from src.config import N_SAMPLES, SEED, RESULTS_DIR
 from src.neural.param_samples import ConfigSampler
-
 
 model = 'MLP'
 # target = 'monash_tourism_quarterly'
@@ -29,10 +28,11 @@ in_set_train, _ = ChronosDataset.time_wise_split(in_set, horizon)
 
 mase_func = partial(mase, seasonality=seas_len)
 
-results_dir = Path() / 'assets' / 'results'
+# 'GRU,ECL,0aac2baac421864d17e8,inner.csv'
 
-cv_inner, config_ids = read_cv_results(results_dir, model, target, 'inner')
-cv_outer, _ = read_cv_results(results_dir, model, target, 'outer')
+
+cv_inner, config_ids = read_cv_results(RESULTS_DIR, model, target, 'inner')
+cv_outer, _ = read_cv_results(RESULTS_DIR, model, target, 'outer')
 
 radar_inner = ModelRadar(
     cv_df=cv_inner,
@@ -53,22 +53,21 @@ radar_outer = ModelRadar(
 )
 
 err_inner = radar_inner.evaluate(keep_uids=False)
-print((err_inner==0).sum())
+print((err_inner == 0).sum())
 print(err_inner.describe())
 err_inner.sort_values()
 
 err_outer = radar_outer.evaluate(keep_uids=False)
-print((err_outer==0).sum())
+print((err_outer == 0).sum())
 print(err_outer.describe())
 
 config_pool = NEURAL_CONFIG_POOL[model]
 config_list = ConfigSampler.generate_samples(config_pool=config_pool, num_samples=N_SAMPLES, random_state=SEED)
 
+list_bad_config_ids = err_inner[err_inner == 0].index.tolist()
+list_bad_config_ids = err_outer[err_outer == 0].index.tolist()
 
-list_bad_config_ids = err_inner[err_inner==0].index.tolist()
-list_bad_config_ids = err_outer[err_outer==0].index.tolist()
-
-bad_configs= [c for c in config_list if c['config_id'] in list_bad_config_ids]
+bad_configs = [c for c in config_list if c['config_id'] in list_bad_config_ids]
 
 pd.DataFrame(bad_configs).T
 
