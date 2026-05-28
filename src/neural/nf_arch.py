@@ -190,12 +190,12 @@ class AutoModelsConfig:
 
 class ModelsConfig:
     MODEL_CLASSES = {
-        # 'KAN': KAN,
-        # 'MLP': MLP,
-        # 'NHITS': NHITS,
+        'KAN': KAN,
+        'MLP': MLP,
+        'NHITS': NHITS,
         'TFT': TFT,
-        # 'PatchTST': PatchTST,
-        # 'GRU': GRU,
+        'PatchTST': PatchTST,
+        'GRU': GRU,
 
         # 'DLinear': DLinear,
         # 'DeepNPTS': DeepNPTS,

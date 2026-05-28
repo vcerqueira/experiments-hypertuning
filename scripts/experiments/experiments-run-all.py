@@ -16,7 +16,7 @@ warnings.filterwarnings('ignore')
 os.environ['TUNE_DISABLE_STRICT_METRIC_CHECKING'] = '1'
 
 # ---- data loading and partitioning
-target = 'ETTm2'
+target = 'monash_tourism_monthly'
 
 # _, horizon, n_lags, _, _ = LongHorizonDatasetR.load_everything(target, resample_to='D')
 _, horizon, n_lags, _, _ = ChronosDataset.load_everything(target)
@@ -33,7 +33,8 @@ print(df.head())
 print(df['y'].iloc[0])
 print(df['unique_id'].value_counts())
 
-results_dir = Path('../assets/results')
+# results_dir = Path('../assets/results')
+results_dir = Path().resolve().parent.parent / 'hypertuning-files' / 'results-all-compiled'
 
 # - split dataset by time
 # -- estimation_train is used for hypertuning

@@ -30,6 +30,9 @@ class ConfigSampler:
                    '6c6aa783172ef07d645d',
                    'e23b2735de790f35e3b4',
                    '0ae460bbd17da6e08ef9',
+                   'be8cf16288da90941ed6',
+                   'a36bf9c40a499e62ee5a',
+                   'e04ff4877de4e241445d',
                    '09316b60a187415cd7dc',
                    'fd9e39298706aa752095']
 

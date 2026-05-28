@@ -2,7 +2,7 @@ from pathlib import Path
 
 DRY_RUN = False
 
-RESULTS_DIR = Path().resolve().parent / 'hypertuning-files' / 'results-all-compiled'
+RESULTS_DIR = Path().resolve().parent.parent / 'hypertuning-files' / 'results-all-compiled'
 
 SEED = 123
 TRY_MPS = True

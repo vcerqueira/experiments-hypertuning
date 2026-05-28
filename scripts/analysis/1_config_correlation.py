@@ -16,16 +16,15 @@ from src.loaders import ChronosDataset
 model = 'NHITS'
 target = 'monash_m1_monthly'
 partition = 'outer'
+RESULTS_DIR = Path().resolve().parent / 'hypertuning-files' / 'results-all-compiled'
 
 df, horizon, n_lags, freq, seas_len = ChronosDataset.load_everything(target)
 # df, horizon, n_lags, freq, seas_len = LongHorizonDatasetR.load_everything(target, resample_to='D')
 in_set, _ = ChronosDataset.time_wise_split(df, horizon)
 
-# results_dir = Path('../assets/results')
 
-results_dir = Path() / 'assets' / 'results'
 pattern = f"{model},{target},*,{partition}.csv"
-config_files = list(results_dir.glob(pattern))
+config_files = list(RESULTS_DIR.glob(pattern))
 config_ids = [f.stem.split(',')[2] for f in config_files]
 
 mase_func = partial(mase, seasonality=seas_len)

@@ -9,17 +9,25 @@ from src.loaders import ChronosDataset, LongHorizonDatasetR
 from src.utils.reading_data import read_cv_results
 from src.config import RESULTS_DIR
 
-MODELS = ['GRU', 'KAN', 'MLP', 'NHITS', 'PatchTST', 'TFT']
-DATASETS = ['monash_tourism_quarterly',
-            'monash_tourism_monthly',
-            'monash_m3_quarterly',
-            'monash_m3_monthly',
-            'monash_m1_monthly',
-            'monash_m1_quarterly',
-            'Weather',
-            'TrafficL',
-            'ECL',
-            ]
+MODELS = [
+    'GRU',
+    # 'KAN',
+    # 'MLP',
+    # 'NHITS',
+    # 'PatchTST',
+    'TFT'
+]
+DATASETS = [
+    # 'monash_tourism_quarterly',
+    # 'monash_tourism_monthly',
+    # 'monash_m3_quarterly',
+    # 'monash_m3_monthly',
+    # 'monash_m1_monthly',
+    # 'monash_m1_quarterly',
+    # 'Weather',
+    # 'TrafficL',
+    'ECL',
+]
 
 global_bad_ids = []
 

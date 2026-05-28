@@ -7,20 +7,24 @@ import pandas as pd
 from modelradar.evaluate.radar import ModelRadar
 from utilsforecast.losses import mase
 
-from src.loaders import ChronosDataset
+from src.loaders import ChronosDataset, LongHorizonDatasetR
 from src.utils.reading_data import read_cv_results
 from src.neural.config_pool import NEURAL_CONFIG_POOL
-from src.config import N_SAMPLES, SEED, RESULTS_DIR
+from src.config import N_SAMPLES, SEED
 from src.neural.param_samples import ConfigSampler
 
-model = 'MLP'
+model = 'TFT'
 # target = 'monash_tourism_quarterly'
 # target = 'monash_tourism_monthly'
-target = 'monash_m3_monthly'
+target = 'TrafficL'
 partition = 'outer'
 
-df, horizon, n_lags, freq, seas_len = ChronosDataset.load_everything(target)
-# df, horizon, n_lags, freq, seas_len = LongHorizonDatasetR.load_everything(target, resample_to='D')
+
+RESULTS_DIR = Path().resolve().parent / 'hypertuning-files' / 'results-all-compiled'
+print(RESULTS_DIR)
+
+# df, horizon, n_lags, freq, seas_len = ChronosDataset.load_everything(target)
+df, horizon, n_lags, freq, seas_len = LongHorizonDatasetR.load_everything(target, resample_to='D')
 in_set, _ = ChronosDataset.time_wise_split(df, horizon)
 in_set_train, _ = ChronosDataset.time_wise_split(in_set, horizon)
 

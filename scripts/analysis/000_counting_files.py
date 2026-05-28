@@ -1,9 +1,11 @@
+from pathlib import Path
 import pandas as pd
-
-from src.config import RESULTS_DIR
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
+
+
+RESULTS_DIR = Path().resolve().parent / 'hypertuning-files' / 'results-all-compiled'
 
 # results_dir = Path() / 'assets' / 'results'
 # results_dir = Path().resolve().parent / 'hypertuning-files' / 'results-all-compiled'
