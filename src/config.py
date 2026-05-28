@@ -5,7 +5,7 @@ DRY_RUN = False
 RESULTS_DIR = Path().resolve().parent.parent / 'hypertuning-files' / 'results-all-compiled'
 
 SEED = 123
-TRY_MPS = True
+TRY_MPS = False
 if DRY_RUN:
     LIMIT_EPOCHS = True
     N_SAMPLES = 100

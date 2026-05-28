@@ -7,7 +7,9 @@ from utilsforecast.losses import mase
 
 from src.loaders import ChronosDataset, LongHorizonDatasetR
 from src.utils.reading_data import read_cv_results
-from src.config import RESULTS_DIR
+
+RESULTS_DIR = Path().resolve().parent / 'hypertuning-files' / 'results-all-compiled'
+print(RESULTS_DIR)
 
 MODELS = [
     'GRU',
@@ -19,14 +21,14 @@ MODELS = [
 ]
 DATASETS = [
     # 'monash_tourism_quarterly',
-    # 'monash_tourism_monthly',
+    'monash_tourism_monthly',
     # 'monash_m3_quarterly',
     # 'monash_m3_monthly',
     # 'monash_m1_monthly',
     # 'monash_m1_quarterly',
     # 'Weather',
     # 'TrafficL',
-    'ECL',
+    # 'ECL',
 ]
 
 global_bad_ids = []
@@ -69,9 +71,11 @@ def find_bad_ids(model, target):
 
     err_inner = radar_inner.evaluate(keep_uids=False)
     err_outer = radar_outer.evaluate(keep_uids=False)
+    print(err_inner.describe())
+    print(err_outer.describe())
 
-    inner_list_bad_ids = err_inner[err_inner == 0].index.tolist()
-    outer_list_bad_ids = err_outer[err_outer == 0].index.tolist()
+    inner_list_bad_ids = err_inner[err_inner == 0.0].index.tolist()
+    outer_list_bad_ids = err_outer[err_outer == 0.0].index.tolist()
 
     list_bad_ids = list(set(inner_list_bad_ids + outer_list_bad_ids))
 
