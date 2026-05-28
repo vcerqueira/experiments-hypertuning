@@ -11,14 +11,14 @@ from src.loaders import ChronosDataset, LongHorizonDatasetR
 from src.utils.reading_data import read_cv_results
 
 DATASETS = [
-    # 'monash_tourism_quarterly',
-    # 'monash_tourism_monthly',
-    # 'monash_m3_quarterly',
-    # 'monash_m3_monthly',
+    'monash_tourism_quarterly',
+    'monash_tourism_monthly',
+    'monash_m3_quarterly',
+    'monash_m3_monthly',
     'monash_m1_monthly',
     'monash_m1_quarterly',
-    # 'TrafficL',
-    # 'ECL',
+    'TrafficL',
+    'ECL',
 ]
 
 MODEL_LIST = [
@@ -31,7 +31,7 @@ MODEL_LIST = [
 ]
 
 TRAJECTORY_SIZE = 450
-N_REPS = 30
+N_REPS = 100
 SHOW_UNCERTAINTY_BANDS = False
 RESULTS_DIR = Path().resolve().parent / 'hypertuning-files' / 'results-all-compiled'
 OUTPUT_DIR = Path('assets/outputs')
@@ -91,15 +91,16 @@ def plot_overtuning(overtuning_long, target):
         )
 
     p = (
-        p
-        + p9.geom_line(size=1.0)
-        + p9.labs(
-            x='Hyperparameter search step',
-            y='Relative overtuning',
-            color='Model',
-            fill='Model',
-        )
-        + p9.theme_538()
+            p
+            + p9.geom_line(size=1.0)
+            + p9.labs(
+        x='Hyperparameter search step',
+        y='Relative overtuning',
+        color='Model',
+        fill='Model',
+    )
+            + p9.theme_538()
+            + p9.theme(legend_position='top')
     )
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -175,10 +176,6 @@ for target in DATASETS:
 
         model_rel_ot[model] = rel_or_list
         print(pd.DataFrame(rel_or_list).mean())
-
-    if not model_rel_ot:
-        print(f'No results found for {target}, skipping plot.')
-        continue
 
     overtuning_long = build_overtuning_long(model_rel_ot)
     plot_overtuning(overtuning_long, target)

@@ -104,6 +104,7 @@ def plot_learning_curve(scores_long, target):
             fill='Model',
         )
         + p9.theme_538()
+        + p9.theme(legend_position='top')
     )
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

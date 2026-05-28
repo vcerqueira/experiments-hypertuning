@@ -18,15 +18,15 @@ from src.fanova import run_fanova
 model = 'PatchTST'
 target = 'monash_m1_monthly'
 partition = 'inner'
+RESULTS_DIR = Path().resolve().parent / 'hypertuning-files' / 'results-all-compiled'
 
 df, horizon, n_lags, freq, seas_len = ChronosDataset.load_everything(target)
 # df, horizon, n_lags, freq, seas_len = LongHorizonDatasetR.load_everything(target, resample_to='D')
 in_set, _ = ChronosDataset.time_wise_split(df, horizon)
-results_dir = Path() / 'assets' / 'results'
 
 mase_func = partial(mase, seasonality=seas_len)
 
-cv_inner, config_ids = read_cv_results(results_dir, model, target, 'inner')
+cv_inner, config_ids = read_cv_results(RESULTS_DIR, model, target, 'inner')
 
 radar_outer = ModelRadar(
     cv_df=cv_inner,
@@ -69,6 +69,7 @@ err_with_config[input_columns] = err_with_config[input_columns].astype(str)
 
 importance = run_fanova(df=err_with_config,
                         target_col='error_score',
-                        max_samples=1000)
+                        max_samples=600,
+                        n_trees=16)
 
 print(importance)

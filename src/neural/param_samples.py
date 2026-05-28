@@ -52,7 +52,7 @@ class ConfigSampler:
                    '6a5d9c886cf892cac3e7', '29b99429f27f24bd2e13', 'ff0a805318367cbc8229', '1fd7a21a3c318eb289e7',
                    'e773d7613b612a1e0108', 'c0122bd5db811cc8ba3f', 'bdd3a37a4eb17d1292b8', '0aa23c36a3f490eb201d',
                    'f087f3a809f7256a1e9b', '42f19db28cbd5d17c23a', '293a811bfdd26a2321f8', '3fdbc68e6b4f6f056a09',
-                   '25d8652d0fc54beacd67']
+                   '25d8652d0fc54beacd67', '2c0ce73dc8e135c1d657']
 
     TOURISM_M_BAD_IDS = ['37ff49dd45d4f53513e0']
 
