@@ -30,8 +30,8 @@ MODEL_LIST = [
     'GRU'
 ]
 
-LEARNING_CURVE = [1, 2, 5, 10, 15, 25, 50, 75, 100, 200, 300, 400, 460]
-N_REPS = 100
+TRAJECTORY_SIZE = 450
+N_REPS = 30
 SHOW_UNCERTAINTY_BANDS = False
 RESULTS_DIR = Path().resolve().parent / 'hypertuning-files' / 'results-all-compiled'
 OUTPUT_DIR = Path('assets/outputs')
@@ -52,42 +52,40 @@ def load_dataset_splits(target):
     return in_set, in_set_train, seas_len
 
 
-def build_scores_long(model_scores):
-    records = []
-    for model, scores in model_scores.items():
-        for n_samples, rep_scores in scores.items():
-            rep_scores = np.asarray(rep_scores)
-            record = {
-                'n_samples': n_samples,
-                'model': model,
-                # 'score': rep_scores.mean(),
-                'score': np.median(rep_scores),
-            }
-            if SHOW_UNCERTAINTY_BANDS:
-                record['ymin'] = rep_scores.mean() - rep_scores.std()
-                record['ymax'] = rep_scores.mean() + rep_scores.std()
-            records.append(record)
+def build_overtuning_long(model_rel_ot):
+    rep_rows = []
+    for model, rel_or_list in model_rel_ot.items():
+        for rel_ot in rel_or_list:
+            for step, value in rel_ot.items():
+                rep_rows.append({
+                    'model': model,
+                    'step': step + 1,
+                    'rel_overtuning': value,
+                })
 
-    scores_df = pd.DataFrame(
-        {
-            model: {n_samples: np.mean(rep_scores) for n_samples, rep_scores in scores.items()}
-            for model, scores in model_scores.items()
-        }
+    overtuning_long = (
+        pd.DataFrame(rep_rows)
+        .groupby(['model', 'step'], as_index=False)['rel_overtuning']
+        .agg(mean='mean', std='std')
+        .rename(columns={'mean': 'rel_overtuning'})
     )
-    scores_long = pd.DataFrame(records)
-    return scores_df, scores_long
+
+    if SHOW_UNCERTAINTY_BANDS:
+        overtuning_long['ymin'] = overtuning_long['rel_overtuning'] - overtuning_long['std']
+        overtuning_long['ymax'] = overtuning_long['rel_overtuning'] + overtuning_long['std']
+
+    return overtuning_long
 
 
-def plot_learning_curve(scores_long, target):
-    x_breaks = sorted(scores_long['n_samples'].unique().tolist())
+def plot_overtuning(overtuning_long, target):
     p = p9.ggplot(
-        scores_long,
-        p9.aes(x='n_samples', y='score', color='model', group='model'),
+        overtuning_long,
+        p9.aes(x='step', y='rel_overtuning', color='model', group='model'),
     )
 
     if SHOW_UNCERTAINTY_BANDS:
         p = p + p9.geom_ribbon(
-            p9.aes(ymin='ymin', ymax='ymax', fill='model'),
+            p9.aes(ymin='ymin', ymax='ymax', fill='model', group='model'),
             alpha=0.2,
             color=None,
         )
@@ -95,11 +93,9 @@ def plot_learning_curve(scores_long, target):
     p = (
         p
         + p9.geom_line(size=1.0)
-        + p9.geom_point(size=1.8)
-        + p9.scale_x_log10(breaks=x_breaks)
         + p9.labs(
-            x='Number of sampled configs (log10 scale)',
-            y='MASE',
+            x='Hyperparameter search step',
+            y='Relative overtuning',
             color='Model',
             fill='Model',
         )
@@ -107,7 +103,7 @@ def plot_learning_curve(scores_long, target):
     )
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    p.save(OUTPUT_DIR / f'rs_lc,{target}.pdf', width=8, height=6)
+    p.save(OUTPUT_DIR / f'overtuning,{target}.pdf', width=8, height=6)
 
 
 for target in DATASETS:
@@ -115,7 +111,7 @@ for target in DATASETS:
     in_set, in_set_train, seas_len = load_dataset_splits(target)
     mase_func = partial(mase, seasonality=seas_len)
 
-    model_scores = {}
+    model_rel_ot = {}
     for model in MODEL_LIST:
         print(model)
 
@@ -146,24 +142,43 @@ for target in DATASETS:
         err_inner = radar_inner.evaluate(keep_uids=False)
         err_outer = radar_outer.evaluate(keep_uids=False)
 
-        scores = {}
-        for s in LEARNING_CURVE:
-            s_scores = []
-            for _ in range(N_REPS):
-                err_sample = err_inner.sample(s)
-                selected_config = err_sample.idxmin()
-                s_scores.append(err_outer[selected_config])
+        rel_or_list = []
+        for _ in range(N_REPS):
+            err_sample = err_inner.sample(TRAJECTORY_SIZE)
+            err_outer_sample = err_outer[err_sample.index].values
 
-            scores[s] = s_scores
+            val_incumbent_errors = np.minimum.accumulate(err_sample).values
 
-        model_scores[model] = scores
+            incumbent_mask = np.concatenate(
+                ([True], val_incumbent_errors[1:] < val_incumbent_errors[:-1])
+            )
 
-    if not model_scores:
+            test_incumbents = np.where(incumbent_mask, err_outer_sample, np.nan)
+
+            mask = np.isnan(test_incumbents)
+            idx = np.where(~mask, np.arange(mask.shape[0]), 0)
+            np.maximum.accumulate(idx, out=idx)
+            test_incumbents = test_incumbents[idx]
+
+            test_lambda_1 = test_incumbents[0]
+            min_test_so_far = np.minimum.accumulate(test_incumbents)
+
+            abs_overtuning = test_incumbents - min_test_so_far
+            max_improvement = test_lambda_1 - min_test_so_far
+
+            with np.errstate(divide='ignore', invalid='ignore'):
+                rel_ot = np.where(
+                    max_improvement > 0, abs_overtuning / max_improvement, 0.0
+                )
+
+            rel_or_list.append(pd.Series(rel_ot))
+
+        model_rel_ot[model] = rel_or_list
+        print(pd.DataFrame(rel_or_list).mean())
+
+    if not model_rel_ot:
         print(f'No results found for {target}, skipping plot.')
         continue
 
-    scores_df, scores_long = build_scores_long(model_scores)
-    print(scores_df)
-
-    scores_long = scores_long[scores_long['n_samples'].isin(LEARNING_CURVE[2:])]
-    plot_learning_curve(scores_long, target)
+    overtuning_long = build_overtuning_long(model_rel_ot)
+    plot_overtuning(overtuning_long, target)
