@@ -22,7 +22,7 @@ DATASET_LIST = [
     'monash_tourism_quarterly',
 ]
 
-results_dir = Path() / 'assets' / 'results'
+RESULTS_DIR = Path().resolve().parent / 'hypertuning-files' / 'results-all-compiled'
 
 # target = 'monash_m1_monthly'
 
@@ -36,7 +36,7 @@ for i, target in enumerate(DATASET_LIST):
 
     mase_func = partial(mase, seasonality=seas_len)
 
-    cv_inner, config_ids = read_cv_results(results_dir, model, target, 'inner')
+    cv_inner, config_ids = read_cv_results(RESULTS_DIR, model, target, 'inner')
 
     radar_outer = ModelRadar(
         cv_df=cv_inner,
@@ -56,7 +56,7 @@ for i, target in enumerate(DATASET_LIST):
 
 scores_df = pd.concat(scores).set_index('unique_id')
 
-scores_df.mean()
+scores_df.mean(numeric_only=True)
 
 # err_df.corr()
 
@@ -73,8 +73,8 @@ for i, target in enumerate(DATASET_LIST):
 
     mase_func = partial(mase, seasonality=seas_len)
 
-    cv_inner, config_ids = read_cv_results(results_dir, model, target, 'inner')
-    cv_outer, _ = read_cv_results(results_dir, model, target, 'outer')
+    cv_inner, config_ids = read_cv_results(RESULTS_DIR, model, target, 'inner')
+    cv_outer, _ = read_cv_results(RESULTS_DIR, model, target, 'outer')
 
     radar_inner = ModelRadar(
         cv_df=cv_inner,
@@ -99,18 +99,21 @@ for i, target in enumerate(DATASET_LIST):
 
     scores_sub = scores_df.query(f'dataset!="{target}"').drop(columns='dataset')
 
+    print('at1')
     config_list1 = active_testing_selection(scores_df=scores_sub,
                                             use_ranks=False,
                                             max_trials=N_TRIALS,
                                             corr_threshold=0.97,
                                             delta=0.01)
 
+    print('at2')
     config_list2 = active_testing_selection(scores_df=scores_sub,
                                             use_ranks=False,
                                             max_trials=N_TRIALS,
                                             corr_threshold=0.9,
                                             delta=0.01)
 
+    print('at3')
     config_list3 = active_testing_bradley_terry(scores_df=scores_sub,
                                                 max_trials=N_TRIALS,
                                                 corr_threshold=0.97)
@@ -139,3 +142,8 @@ for i, target in enumerate(DATASET_LIST):
     print(pd.DataFrame(scores_f))
 
 print(pd.DataFrame(scores_f))
+
+a = pd.DataFrame(scores_f)
+a.set_index('dataset').rank(axis=1).mean()
+
+

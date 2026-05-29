@@ -3,12 +3,12 @@ import pandas as pd
 import choix
 
 
-def scores_to_comparisons(
+def scores_to_comparison_matrix(
     scores_df: pd.DataFrame,
     lower_is_better: bool = True,
-) -> tuple[list[tuple[int, int]], list[str]]:
+) -> tuple[np.ndarray, list[str]]:
     """
-    Convert a score matrix to pairwise comparisons for choix.
+    Aggregate pairwise outcomes into a dense win-count matrix for choix.
 
     Parameters
     ----------
@@ -19,30 +19,21 @@ def scores_to_comparisons(
 
     Returns
     -------
-    tuple[list[tuple[int, int]], list[str]]
-        - List of (winner_idx, loser_idx) tuples
-        - List of config names (index corresponds to idx in tuples)
+    tuple[np.ndarray, list[str]]
+        - Matrix where entry (i, j) is the number of times config i beat config j
+        - List of config names (index corresponds to matrix rows/columns)
     """
-    configs = scores_df.columns.tolist()
-    n = len(configs)
-    comparisons = []
+    values = scores_df.to_numpy()
+    n = values.shape[1]
+    comp_mat = np.zeros((n, n), dtype=np.float64)
 
-    values = scores_df.values
     for row in values:
-        for i in range(n):
-            for j in range(i + 1, n):
-                if lower_is_better:
-                    if row[i] < row[j]:
-                        comparisons.append((i, j))
-                    elif row[j] < row[i]:
-                        comparisons.append((j, i))
-                else:
-                    if row[i] > row[j]:
-                        comparisons.append((i, j))
-                    elif row[j] > row[i]:
-                        comparisons.append((j, i))
+        if lower_is_better:
+            comp_mat += row[:, None] < row[None, :]
+        else:
+            comp_mat += row[:, None] > row[None, :]
 
-    return comparisons, configs
+    return comp_mat, scores_df.columns.tolist()
 
 
 def fit_bradley_terry(
@@ -51,7 +42,7 @@ def fit_bradley_terry(
     alpha: float = 0.0,
 ) -> pd.Series:
     """
-    Fit Bradley-Terry model using choix's ILSR algorithm.
+    Fit Bradley-Terry model using choix's dense ILSR algorithm.
 
     Parameters
     ----------
@@ -67,10 +58,8 @@ def fit_bradley_terry(
     pd.Series
         Log-strength parameters θ for each config.
     """
-    comparisons, configs = scores_to_comparisons(scores_df, lower_is_better)
-    n = len(configs)
-
-    params = choix.ilsr_pairwise(n, comparisons, alpha=alpha)
+    comp_mat, configs = scores_to_comparison_matrix(scores_df, lower_is_better)
+    params = choix.ilsr_pairwise_dense(comp_mat, alpha=alpha)
 
     return pd.Series(params, index=configs)
 
@@ -91,7 +80,7 @@ def active_testing_bradley_terry(
         P(i > j) = π_i / (π_i + π_j)
     where π = exp(θ) and θ are the log-strength parameters.
 
-    Uses choix's ILSR algorithm for efficient fitting.
+    Uses choix's dense ILSR algorithm for efficient fitting.
 
     Parameters
     ----------
