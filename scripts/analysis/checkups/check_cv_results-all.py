@@ -12,7 +12,7 @@ RESULTS_DIR = Path().resolve().parent / 'hypertuning-files' / 'results-all-compi
 print(RESULTS_DIR)
 
 MODELS = [
-    'GRU',
+    # 'GRU',
     # 'KAN',
     # 'MLP',
     # 'NHITS',
@@ -27,8 +27,8 @@ DATASETS = [
     # 'monash_m1_monthly',
     # 'monash_m1_quarterly',
     # 'Weather',
-    # 'TrafficL',
-    'ECL',
+    'TrafficL',
+    # 'ECL',
 ]
 
 global_bad_ids = []
