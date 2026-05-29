@@ -30,7 +30,7 @@ MODEL_LIST = [
     'GRU'
 ]
 
-TRAJECTORY_SIZE = 450
+TRAJECTORY_SIZE = 500
 N_REPS = 100
 SHOW_UNCERTAINTY_BANDS = False
 RESULTS_DIR = Path().resolve().parent / 'hypertuning-files' / 'results-all-compiled'

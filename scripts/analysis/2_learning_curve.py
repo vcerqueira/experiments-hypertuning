@@ -11,14 +11,14 @@ from src.loaders import ChronosDataset, LongHorizonDatasetR
 from src.utils.reading_data import read_cv_results
 
 DATASETS = [
-    # 'monash_tourism_quarterly',
-    # 'monash_tourism_monthly',
-    # 'monash_m3_quarterly',
-    # 'monash_m3_monthly',
+    'monash_tourism_quarterly',
+    'monash_tourism_monthly',
+    'monash_m3_quarterly',
+    'monash_m3_monthly',
     'monash_m1_monthly',
     'monash_m1_quarterly',
-    # 'TrafficL',
-    # 'ECL',
+    'TrafficL',
+    'ECL',
 ]
 
 MODEL_LIST = [
@@ -30,7 +30,7 @@ MODEL_LIST = [
     'GRU'
 ]
 
-LEARNING_CURVE = [1, 2, 5, 10, 15, 25, 50, 75, 100, 200, 300, 400, 460]
+LEARNING_CURVE = [1, 2, 5, 10, 15, 25, 50, 75, 100, 200, 300, 400, 500]
 N_REPS = 100
 SHOW_UNCERTAINTY_BANDS = False
 RESULTS_DIR = Path().resolve().parent / 'hypertuning-files' / 'results-all-compiled'
