@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 import choix
@@ -36,10 +38,23 @@ def scores_to_comparison_matrix(
     return comp_mat, scores_df.columns.tolist()
 
 
+def _fit_bradley_terry_ilsr(
+    comp_mat: np.ndarray,
+    alpha: float,
+    max_iter: int,
+    tol: float,
+) -> np.ndarray:
+    return choix.ilsr_pairwise_dense(
+        comp_mat, alpha=alpha, max_iter=max_iter, tol=tol
+    )
+
+
 def fit_bradley_terry(
     scores_df: pd.DataFrame,
     lower_is_better: bool = True,
     alpha: float = 0.0,
+    max_iter: int = 100,
+    tol: float = 1e-8,
 ) -> pd.Series:
     """
     Fit Bradley-Terry model using choix's dense ILSR algorithm.
@@ -52,16 +67,81 @@ def fit_bradley_terry(
         If True, lower scores win comparisons.
     alpha : float, default 0.0
         Regularization parameter for ILSR (adds alpha to each comparison count).
+    max_iter : int, default 100
+        Maximum ILSR iterations per attempt.
+    tol : float, default 1e-8
+        Convergence tolerance for ILSR.
 
     Returns
     -------
     pd.Series
         Log-strength parameters θ for each config.
+
+    Raises
+    ------
+    RuntimeError
+        If ILSR does not converge on any attempt.
     """
     comp_mat, configs = scores_to_comparison_matrix(scores_df, lower_is_better)
-    params = choix.ilsr_pairwise_dense(comp_mat, alpha=alpha)
 
-    return pd.Series(params, index=configs)
+    attempts = [
+        (alpha, max_iter),
+        (max(alpha, 1e-2), max(max_iter, 500)),
+        (0.1, max(max_iter, 1000)),
+    ]
+    seen: set[tuple[float, int]] = set()
+    last_error: RuntimeError | None = None
+
+    for alpha_try, max_iter_try in attempts:
+        key = (alpha_try, max_iter_try)
+        if key in seen:
+            continue
+        seen.add(key)
+        try:
+            params = _fit_bradley_terry_ilsr(
+                comp_mat, alpha=alpha_try, max_iter=max_iter_try, tol=tol
+            )
+            return pd.Series(params, index=configs)
+        except RuntimeError as exc:
+            last_error = exc
+
+    raise RuntimeError(
+        "Bradley-Terry ILSR did not converge"
+    ) from last_error
+
+
+def random_config_ranking(
+    scores_df: pd.DataFrame,
+    max_trials: int | None = None,
+    corr_threshold: float | None = None,
+    rng: np.random.Generator | None = None,
+) -> list:
+    """
+    Random search order: shuffled configs, optionally skipping correlated picks.
+    """
+    rng = rng or np.random.default_rng()
+    remaining = scores_df.columns.to_numpy().copy()
+    rng.shuffle(remaining)
+
+    selected: list = []
+    selected_corr_cache: dict[str, pd.Series] = {}
+
+    for config in remaining:
+        if max_trials is not None and len(selected) >= max_trials:
+            break
+
+        if corr_threshold is not None and selected:
+            if any(
+                abs(scores_df[config].corr(selected_corr_cache[sel])) > corr_threshold
+                for sel in selected
+            ):
+                continue
+
+        selected.append(config)
+        if corr_threshold is not None:
+            selected_corr_cache[config] = scores_df[config]
+
+    return selected
 
 
 def bradley_terry_ranking(
@@ -103,8 +183,21 @@ def bradley_terry_ranking(
     -------
     list
         Ordered list of config IDs in the sequence they were selected.
+        Falls back to :func:`random_config_ranking` if BT fitting does not converge.
     """
-    theta = fit_bradley_terry(scores_df, lower_is_better, alpha=alpha)
+    try:
+        theta = fit_bradley_terry(scores_df, lower_is_better, alpha=alpha)
+    except RuntimeError:
+        warnings.warn(
+            "Bradley-Terry did not converge; falling back to random config order.",
+            stacklevel=2,
+        )
+        return random_config_ranking(
+            scores_df,
+            max_trials=max_trials,
+            corr_threshold=corr_threshold,
+        )
+
     pi = np.exp(theta)
 
     remaining = set(scores_df.columns)
