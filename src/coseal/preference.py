@@ -64,7 +64,7 @@ def fit_bradley_terry(
     return pd.Series(params, index=configs)
 
 
-def active_testing_bradley_terry(
+def bradley_terry_ranking(
     scores_df: pd.DataFrame,
     max_trials: int | None = None,
     corr_threshold: float | None = None,
