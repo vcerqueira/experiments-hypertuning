@@ -4,6 +4,9 @@ import numpy as np
 import pandas as pd
 import choix
 
+# choix may raise these when the comparison graph is singular or disconnected
+_BT_FIT_ERRORS = (RuntimeError, ValueError, np.linalg.LinAlgError)
+
 
 def scores_to_comparison_matrix(
     scores_df: pd.DataFrame,
@@ -80,17 +83,23 @@ def fit_bradley_terry(
     Raises
     ------
     RuntimeError
-        If ILSR does not converge on any attempt.
+        If ILSR fails on every attempt (non-convergence, singular chain, etc.).
     """
-    comp_mat, configs = scores_to_comparison_matrix(scores_df, lower_is_better)
+    clean = scores_df.dropna(axis=1, how='all')
+    comp_mat, configs = scores_to_comparison_matrix(clean, lower_is_better)
 
+    n_items = comp_mat.shape[0]
     attempts = [
         (alpha, max_iter),
         (max(alpha, 1e-2), max(max_iter, 500)),
         (0.1, max(max_iter, 1000)),
+        (1.0, max(max_iter, 2000)),
     ]
+    if n_items > 100:
+        attempts.insert(0, (max(alpha, 0.1), max(max_iter, 500)))
+
     seen: set[tuple[float, int]] = set()
-    last_error: RuntimeError | None = None
+    last_error: BaseException | None = None
 
     for alpha_try, max_iter_try in attempts:
         key = (alpha_try, max_iter_try)
@@ -102,11 +111,11 @@ def fit_bradley_terry(
                 comp_mat, alpha=alpha_try, max_iter=max_iter_try, tol=tol
             )
             return pd.Series(params, index=configs)
-        except RuntimeError as exc:
+        except _BT_FIT_ERRORS as exc:
             last_error = exc
 
     raise RuntimeError(
-        "Bradley-Terry ILSR did not converge"
+        "Bradley-Terry ILSR failed"
     ) from last_error
 
 
@@ -183,13 +192,13 @@ def bradley_terry_ranking(
     -------
     list
         Ordered list of config IDs in the sequence they were selected.
-        Falls back to :func:`random_config_ranking` if BT fitting does not converge.
+        Falls back to :func:`random_config_ranking` if BT fitting fails.
     """
     try:
         theta = fit_bradley_terry(scores_df, lower_is_better, alpha=alpha)
     except RuntimeError:
         warnings.warn(
-            "Bradley-Terry did not converge; falling back to random config order.",
+            "Bradley-Terry fitting failed; falling back to random config order.",
             stacklevel=2,
         )
         return random_config_ranking(

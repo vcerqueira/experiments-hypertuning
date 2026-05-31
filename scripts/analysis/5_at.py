@@ -32,12 +32,11 @@ MODEL_LIST = [
     'NHITS',
     'TFT',
     'PatchTST',
-    'GRU'
+    'GRU',
 ]
 
-model = 'NHITS'
-
 RESULTS_DIR = Path().resolve().parent / 'hypertuning-files' / 'results-all-compiled'
+OUTPUT_DIR = Path('assets/results')
 
 
 def load_dataset(target):
@@ -54,33 +53,6 @@ def load_dataset(target):
     return in_set, in_set_train, seas_len
 
 
-scores = []
-for i, target in enumerate(DATASETS):
-    print(target)
-    in_set, in_set_train, seas_len = load_dataset(target)
-    mase_func = partial(mase, seasonality=seas_len)
-
-    cv_inner, config_ids = read_cv_results(RESULTS_DIR, model, target, 'inner')
-
-    radar_outer = ModelRadar(
-        cv_df=cv_inner,
-        metrics=[mase_func],
-        model_names=config_ids,
-        train_df=in_set_train,
-        hardness_reference=config_ids[0],
-        ratios_reference=config_ids[0],
-    )
-
-    err_df = radar_outer.evaluate(keep_uids=True).reset_index()
-    err_df['dataset'] = target
-
-    err_df['unique_id'] = err_df['unique_id'].apply(lambda x: f"{i}{x}")
-
-    scores.append(err_df)
-
-scores_df = pd.concat(scores).set_index('unique_id')
-
-
 def filter_configs_in_errors(
     config_order: list,
     err: pd.Series | pd.DataFrame,
@@ -90,87 +62,136 @@ def filter_configs_in_errors(
     return [c for c in config_order if c in available]
 
 
-scores_f = []
-for i, target in enumerate(DATASETS):
-    print(target)
+def best_config_after_trials(
+    err_inner: pd.Series | pd.DataFrame,
+    config_order: list,
+) -> str:
+    configs = filter_configs_in_errors(config_order, err_inner)[:N_TRIALS]
+    return err_inner[configs].idxmin()
 
-    in_set, in_set_train, seas_len = load_dataset(target)
-    mase_func = partial(mase, seasonality=seas_len)
 
-    cv_inner, config_ids = read_cv_results(RESULTS_DIR, model, target, 'inner')
-    cv_outer, _ = read_cv_results(RESULTS_DIR, model, target, 'outer')
+def build_meta_scores_df(model: str) -> pd.DataFrame | None:
+    scores = []
+    for i, target in enumerate(DATASETS):
+        print(f'  meta scores: {target}')
+        in_set, in_set_train, seas_len = load_dataset(target)
+        mase_func = partial(mase, seasonality=seas_len)
 
-    radar_inner = ModelRadar(
-        cv_df=cv_inner,
-        metrics=[mase_func],
-        model_names=config_ids,
-        train_df=in_set_train,
-        hardness_reference=config_ids[0],
-        ratios_reference=config_ids[0],
-    )
+        cv_inner, config_ids = read_cv_results(RESULTS_DIR, model, target, 'inner')
+        if cv_inner is None or not config_ids:
+            print(f'    skipping {target} (no inner CV results)')
+            continue
 
-    radar_outer = ModelRadar(
-        cv_df=cv_outer,
-        metrics=[mase_func],
-        model_names=config_ids,
-        train_df=in_set,
-        hardness_reference=config_ids[0],
-        ratios_reference=config_ids[0],
-    )
+        radar_outer = ModelRadar(
+            cv_df=cv_inner,
+            metrics=[mase_func],
+            model_names=config_ids,
+            train_df=in_set_train,
+            hardness_reference=config_ids[0],
+            ratios_reference=config_ids[0],
+        )
 
-    err_inner = radar_inner.evaluate(keep_uids=False)
-    err_outer = radar_outer.evaluate(keep_uids=False)
+        err_df = radar_outer.evaluate(keep_uids=True).reset_index()
+        err_df['dataset'] = target
+        err_df['unique_id'] = err_df['unique_id'].apply(lambda x: f"{i}{x}")
+        scores.append(err_df)
 
-    scores_sub = scores_df.query(f'dataset!="{target}"').drop(columns='dataset')
+    if not scores:
+        return None
 
-    print('at1')
-    at_list = active_testing_selection(scores_df=scores_sub,
-                                       use_ranks=False,
-                                       max_trials=N_TRIALS,
-                                       corr_threshold=CORR_SELECTION,
-                                       delta=0.01)
+    return pd.concat(scores).set_index('unique_id')
 
-    print('at2')
-    atr_list = active_testing_selection(scores_df=scores_sub,
-                                        use_ranks=True,
-                                        max_trials=N_TRIALS,
-                                        corr_threshold=CORR_SELECTION,
-                                        delta=0.01)
 
-    print('at3')
-    bt_list = bradley_terry_ranking(scores_df=scores_sub,
-                                    max_trials=N_TRIALS,
-                                    corr_threshold=CORR_SELECTION)
+def evaluate_model(model: str, scores_df: pd.DataFrame) -> pd.DataFrame:
+    scores_f = []
+    for target in DATASETS:
+        print(f'  evaluate: {target}')
+        in_set, in_set_train, seas_len = load_dataset(target)
+        mase_func = partial(mase, seasonality=seas_len)
 
-    rs_configs = filter_configs_in_errors(
-        err_inner.sample(N_TRIALS).index.tolist(), err_inner
-    )
+        cv_inner, config_ids = read_cv_results(RESULTS_DIR, model, target, 'inner')
+        cv_outer, _ = read_cv_results(RESULTS_DIR, model, target, 'outer')
+        if cv_inner is None or cv_outer is None or not config_ids:
+            print(f'    skipping {target} (no CV results)')
+            continue
 
-    at_configs = filter_configs_in_errors(at_list, err_inner)
-    atr_configs = filter_configs_in_errors(atr_list, err_inner)
-    bt_configs = filter_configs_in_errors(bt_list, err_inner)
+        radar_inner = ModelRadar(
+            cv_df=cv_inner,
+            metrics=[mase_func],
+            model_names=config_ids,
+            train_df=in_set_train,
+            hardness_reference=config_ids[0],
+            ratios_reference=config_ids[0],
+        )
 
-    active_testing_cfg = err_inner[at_configs].head(N_TRIALS).idxmin()
-    active_testing_r_cfg = err_inner[atr_configs].head(N_TRIALS).idxmin()
-    pref_learning_cfg = err_inner[bt_configs].head(N_TRIALS).idxmin()
-    random_search_cfg = err_inner[rs_configs].head(N_TRIALS).idxmin()
+        radar_outer = ModelRadar(
+            cv_df=cv_outer,
+            metrics=[mase_func],
+            model_names=config_ids,
+            train_df=in_set,
+            hardness_reference=config_ids[0],
+            ratios_reference=config_ids[0],
+        )
 
-    rs_err = err_outer[random_search_cfg]
-    active_testing_err = err_outer[active_testing_cfg]
-    active_testing_r_err = err_outer[active_testing_r_cfg]
-    pref_learning_err = err_outer[pref_learning_cfg]
+        err_inner = radar_inner.evaluate(keep_uids=False)
+        err_outer = radar_outer.evaluate(keep_uids=False)
 
-    scores_f.append({
-        'Dataset': target,
-        'RS': rs_err,
-        'AT': active_testing_err,
-        'ATR': active_testing_r_err,
-        'PL': pref_learning_err,
-    })
+        scores_sub = scores_df.query(f'dataset!="{target}"').drop(columns='dataset')
 
-    print(pd.DataFrame(scores_f))
+        at_list = active_testing_selection(
+            scores_df=scores_sub,
+            use_ranks=False,
+            max_trials=SAFE_N_TRIALS,
+            corr_threshold=CORR_SELECTION,
+            delta=0.01,
+        )
 
-print(pd.DataFrame(scores_f))
+        atr_list = active_testing_selection(
+            scores_df=scores_sub,
+            use_ranks=True,
+            max_trials=SAFE_N_TRIALS,
+            corr_threshold=CORR_SELECTION,
+            delta=0.01,
+        )
 
-model_final_scrs = pd.DataFrame(scores_f)
-model_final_scrs.set_index('Dataset').rank(axis=1).mean()
+        bt_list = bradley_terry_ranking(
+            scores_df=scores_sub,
+            max_trials=SAFE_N_TRIALS,
+            corr_threshold=CORR_SELECTION,
+        )
+
+        rs_configs = filter_configs_in_errors(
+            err_inner.sample(N_TRIALS).index.tolist(), err_inner
+        )
+
+        scores_f.append({
+            'Dataset': target,
+            'RS': err_outer[best_config_after_trials(err_inner, rs_configs)],
+            'AT': err_outer[best_config_after_trials(err_inner, at_list)],
+            'ATR': err_outer[best_config_after_trials(err_inner, atr_list)],
+            'PL': err_outer[best_config_after_trials(err_inner, bt_list)],
+        })
+
+    return pd.DataFrame(scores_f)
+
+
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+for model in MODEL_LIST:
+    print(f'\n=== {model} ===')
+
+    scores_df = build_meta_scores_df(model)
+    if scores_df is None:
+        print(f'No meta scores for {model}, skipping.')
+        continue
+
+    model_final_scrs = evaluate_model(model, scores_df)
+    if model_final_scrs.empty:
+        print(f'No evaluation results for {model}, skipping save.')
+        continue
+
+    out_path = OUTPUT_DIR / f'search,{model}.csv'
+    model_final_scrs.to_csv(out_path, index=False)
+    print(model_final_scrs)
+    print(f'Saved {out_path}')
+    print(model_final_scrs.set_index('Dataset').rank(axis=1).mean())
