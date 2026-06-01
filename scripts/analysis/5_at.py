@@ -12,7 +12,7 @@ from src.coseal.preference import bradley_terry_ranking
 
 CORR_SELECTION = 0.9
 N_TRIALS = 25
-SAFE_N_TRIALS = 50 # to ensure we actually get 100 for each... (some configs are not in some datasets)
+SAFE_N_TRIALS = 50 # to ensure we actually get N_TRIALS for each... (some configs are not in some datasets)
 # final value is N_TRIALS like err_inner[at_configs].head(N_TRIALS).idxmin()
 
 DATASETS = [
