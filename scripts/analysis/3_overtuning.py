@@ -9,6 +9,7 @@ from utilsforecast.losses import mase
 
 from src.loaders import ChronosDataset, LongHorizonDatasetR
 from src.utils.reading_data import read_cv_results
+from src.utils.plotting import THEME
 
 DATASETS = [
     'monash_tourism_quarterly',
@@ -99,7 +100,7 @@ def plot_overtuning(overtuning_long, target):
         color='Model',
         fill='Model',
     )
-            + p9.theme_538()
+            + THEME
             + p9.theme(legend_position='top')
     )
 

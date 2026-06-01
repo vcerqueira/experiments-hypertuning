@@ -9,6 +9,7 @@ from utilsforecast.losses import mase
 
 from src.loaders import ChronosDataset, LongHorizonDatasetR
 from src.utils.reading_data import read_cv_results
+from src.utils.plotting import THEME
 
 DATASETS = [
     'monash_tourism_quarterly',
@@ -75,13 +76,17 @@ def build_scores_long(model_scores):
         }
     )
     scores_long = pd.DataFrame(records)
+    scores_long['n_samples'] = pd.to_numeric(scores_long['n_samples'])
     return scores_df, scores_long
 
 
 def plot_learning_curve(scores_long, target):
-    x_breaks = sorted(scores_long['n_samples'].unique().tolist())
+    df = scores_long.copy()
+    df['n_samples'] = pd.to_numeric(df['n_samples'], errors='coerce')
+    df = df.sort_values(['model', 'n_samples'])
+
     p = p9.ggplot(
-        scores_long,
+        df,
         p9.aes(x='n_samples', y='score', color='model', group='model'),
     )
 
@@ -93,18 +98,18 @@ def plot_learning_curve(scores_long, target):
         )
 
     p = (
-        p
-        + p9.geom_line(size=1.0)
-        + p9.geom_point(size=1.8)
-        + p9.scale_x_log10(breaks=x_breaks)
-        + p9.labs(
-            x='Number of sampled configs (log10 scale)',
-            y='MASE',
-            color='Model',
-            fill='Model',
-        )
-        + p9.theme_538()
-        + p9.theme(legend_position='top')
+            p
+            + p9.geom_line(size=1.0)
+            + p9.geom_point(size=1.8)
+            + p9.scale_x_log10()
+            + p9.labs(
+        x='Number of sampled configs',
+        y='MASE',
+        color='Model',
+        fill='Model',
+    )
+            + THEME
+            + p9.theme(legend_position='top')
     )
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

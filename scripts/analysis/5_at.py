@@ -11,8 +11,8 @@ from src.coseal.active_testing import active_testing_selection
 from src.coseal.preference import bradley_terry_ranking
 
 CORR_SELECTION = 0.9
-N_TRIALS = 25
-SAFE_N_TRIALS = 50 # to ensure we actually get N_TRIALS for each... (some configs are not in some datasets)
+N_TRIALS = 5
+SAFE_N_TRIALS = 20  # to ensure we actually get N_TRIALS for each... (some configs are not in some datasets)
 # final value is N_TRIALS like err_inner[at_configs].head(N_TRIALS).idxmin()
 
 DATASETS = [
@@ -54,8 +54,8 @@ def load_dataset(target):
 
 
 def filter_configs_in_errors(
-    config_order: list,
-    err: pd.Series | pd.DataFrame,
+        config_order: list,
+        err: pd.Series | pd.DataFrame,
 ) -> list:
     """Keep configs from config_order that exist in err, preserving order."""
     available = err.index if isinstance(err, pd.Series) else err.columns
@@ -63,8 +63,8 @@ def filter_configs_in_errors(
 
 
 def best_config_after_trials(
-    err_inner: pd.Series | pd.DataFrame,
-    config_order: list,
+        err_inner: pd.Series | pd.DataFrame,
+        config_order: list,
 ) -> str:
     configs = filter_configs_in_errors(config_order, err_inner)[:N_TRIALS]
     return err_inner[configs].idxmin()

@@ -13,6 +13,7 @@ from src.config import N_SAMPLES, SEED
 from src.neural.config_pool import NEURAL_CONFIG_POOL
 from src.neural.param_samples import ConfigSampler
 from src.fanova import run_fanova
+from src.utils.plotting import THEME
 
 DATASETS = [
     'monash_tourism_quarterly',
@@ -113,19 +114,19 @@ def plot_model_importance(model_df, model):
     )
 
     p = (
-        p9.ggplot(model_df, p9.aes(x='hyperparameter', y='importance'))
-        + p9.geom_col(fill='#008fd5', width=0.7)
-        + p9.geom_errorbar(
-            p9.aes(ymin='ymin', ymax='ymax'),
-            width=0.2,
-        )
-        + p9.coord_flip()
-        + p9.labs(
-            x='Hyperparameter',
-            y='Average importance',
-            title=model,
-        )
-        + p9.theme_538()
+            p9.ggplot(model_df, p9.aes(x='hyperparameter', y='importance'))
+            + p9.geom_col(fill='#008fd5', width=0.7)
+            + p9.geom_errorbar(
+        p9.aes(ymin='ymin', ymax='ymax'),
+        width=0.2,
+    )
+            + p9.coord_flip()
+            + p9.labs(
+        x='Hyperparameter',
+        y='Average importance',
+        title=model,
+    )
+            + THEME + p9.theme(axis_text_y=p9.element_text(size=17, weight='bold'))
     )
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
