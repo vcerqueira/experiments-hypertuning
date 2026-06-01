@@ -208,8 +208,20 @@ def bradley_terry_ranking(
         )
 
     pi = np.exp(theta)
+    # Only configs that were fitted (e.g. all-NaN columns are dropped in fit_bradley_terry)
+    fitted_configs = [c for c in scores_df.columns if c in theta.index]
+    if not fitted_configs:
+        warnings.warn(
+            "No configs with Bradley-Terry parameters; falling back to random config order.",
+            stacklevel=2,
+        )
+        return random_config_ranking(
+            scores_df,
+            max_trials=max_trials,
+            corr_threshold=corr_threshold,
+        )
 
-    remaining = set(scores_df.columns)
+    remaining = set(fitted_configs)
     selected = []
     selected_corr_cache: dict[str, pd.Series] = {}
 
@@ -225,7 +237,7 @@ def bradley_terry_ranking(
             break
 
         best_pi = pi[best_config]
-        candidate_list = list(remaining)
+        candidate_list = [c for c in remaining if c in pi.index]
 
         if corr_threshold is not None:
             filtered = []
