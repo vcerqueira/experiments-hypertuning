@@ -8,7 +8,8 @@ from utilsforecast.losses import mase
 from src.loaders import ChronosDataset, LongHorizonDatasetR
 from src.utils.reading_data import read_cv_results
 
-RESULTS_DIR = Path().resolve().parent / 'hypertuning-files' / 'results-all-compiled'
+# RESULTS_DIR = Path().resolve().parent / 'hypertuning-files' / 'results-all-compiled'
+RESULTS_DIR = Path('assets/results_hpo')
 print(RESULTS_DIR)
 
 MODELS = [
@@ -17,17 +18,18 @@ MODELS = [
     # 'MLP',
     # 'NHITS',
     # 'PatchTST',
-    'TFT'
+    # 'TFT',
+    'Autoformer'
 ]
 DATASETS = [
     # 'monash_tourism_quarterly',
     # 'monash_tourism_monthly',
     # 'monash_m3_quarterly',
     # 'monash_m3_monthly',
-    # 'monash_m1_monthly',
+    'monash_m1_monthly',
     # 'monash_m1_quarterly',
     # 'Weather',
-    'TrafficL',
+    # 'TrafficL',
     # 'ECL',
 ]
 

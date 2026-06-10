@@ -13,18 +13,19 @@ from src.neural.config_pool import NEURAL_CONFIG_POOL
 from src.config import N_SAMPLES, SEED
 from src.neural.param_samples import ConfigSampler
 
-model = 'TFT'
+model = 'Autoformer'
 # target = 'monash_tourism_quarterly'
 # target = 'monash_tourism_monthly'
-target = 'TrafficL'
+target = 'monash_m1_monthly'
 partition = 'outer'
 
 
 RESULTS_DIR = Path().resolve().parent / 'hypertuning-files' / 'results-all-compiled'
+# RESULTS_DIR = Path('assets/results_hpo')
 print(RESULTS_DIR)
 
-# df, horizon, n_lags, freq, seas_len = ChronosDataset.load_everything(target)
-df, horizon, n_lags, freq, seas_len = LongHorizonDatasetR.load_everything(target, resample_to='D')
+df, horizon, n_lags, freq, seas_len = ChronosDataset.load_everything(target)
+# df, horizon, n_lags, freq, seas_len = LongHorizonDatasetR.load_everything(target, resample_to='D')
 in_set, _ = ChronosDataset.time_wise_split(df, horizon)
 in_set_train, _ = ChronosDataset.time_wise_split(in_set, horizon)
 
@@ -73,7 +74,7 @@ list_bad_config_ids = err_outer[err_outer == 0].index.tolist()
 
 bad_configs = [c for c in config_list if c['config_id'] in list_bad_config_ids]
 
-pd.DataFrame(bad_configs).T
+print(pd.DataFrame(bad_configs).T)
 
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
