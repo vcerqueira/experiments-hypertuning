@@ -29,10 +29,11 @@ MODEL_LIST = [
     # 'TFT',
     # 'PatchTST',
     # 'GRU'
-    'Autoformer'
+    # 'Autoformer',
+    'Informer',
 ]
 
-LEARNING_CURVE = [1, 2, 5, 10, 15, 25, 40, 60]
+LEARNING_CURVE = [1, 2, 5, 10, 15, 25, 40, 60,95,100,150,175,225, 280]
 N_REPS = 100
 SHOW_UNCERTAINTY_BANDS = False
 # RESULTS_DIR = Path().resolve().parent / 'hypertuning-files' / 'results-all-compiled'

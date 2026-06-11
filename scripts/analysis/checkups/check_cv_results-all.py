@@ -19,7 +19,7 @@ MODELS = [
     # 'NHITS',
     # 'PatchTST',
     # 'TFT',
-    'Autoformer'
+    'Informer'
 ]
 DATASETS = [
     # 'monash_tourism_quarterly',

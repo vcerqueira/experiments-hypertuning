@@ -150,6 +150,24 @@ NEURAL_CONFIG_POOL = {
         "random_seed": tune.randint(1, 20),
     },
 
+    'Informer': {
+        "input_size_multiplier": tune.choice([1, 2, 3]),
+        "hidden_size": tune.choice([32, 64, 128, 256]),
+        "n_head": tune.choice([2, 4, 8]),
+        "conv_hidden_size": tune.choice([8, 16, 32]),
+        "encoder_layers": tune.choice([1, 2, 3]),
+        "decoder_layers": tune.choice([1, 2]),
+        "factor": tune.choice([1, 2, 3]),
+        "dropout": tune.choice([0.05, 0.1, 0.15]),
+        "distil": tune.choice([True, False]),
+        "learning_rate": tune.loguniform(1e-4, 1e-1),
+        "scaler_type": tune.choice(["robust", "standard"]),
+        "max_steps": tune.choice([500, 1000, 2000]),
+        "batch_size": tune.choice([32, 64, 128, 256]),
+        "windows_batch_size": tune.choice([128, 256, 512]),
+        "random_seed": tune.randint(1, 20),
+    },
+
     'GRU': {
         "input_size_multiplier": tune.choice([-1, 1, 2, 3]),
         "inference_input_size_multiplier": tune.choice([-1, 1]),
