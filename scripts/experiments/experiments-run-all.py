@@ -16,7 +16,7 @@ warnings.filterwarnings('ignore')
 os.environ['TUNE_DISABLE_STRICT_METRIC_CHECKING'] = '1'
 
 # ---- data loading and partitioning
-target = 'monash_m1_monthly'
+target = 'monash_m3_monthly'
 
 # _, horizon, n_lags, _, _ = LongHorizonDatasetR.load_everything(target, resample_to='D')
 _, horizon, n_lags, _, _ = ChronosDataset.load_everything(target)

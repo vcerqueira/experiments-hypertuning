@@ -15,8 +15,8 @@ DATASETS = [
     # 'monash_tourism_quarterly',
     # 'monash_tourism_monthly',
     # 'monash_m3_quarterly',
-    # 'monash_m3_monthly',
-    'monash_m1_monthly',
+    'monash_m3_monthly',
+    # 'monash_m1_monthly',
     # 'monash_m1_quarterly',
     # 'TrafficL',
     # 'ECL',
@@ -33,7 +33,8 @@ MODEL_LIST = [
     'Informer',
 ]
 
-LEARNING_CURVE = [1, 2, 5, 10, 15, 25, 40, 60,95,100,150,175,225, 280]
+LEARNING_CURVE = [1, 2, 5, 10, 15, 25, 40, 60,95,100,150,175,225, 280,350]
+# LEARNING_CURVE = [1, 2, 7, 15, 25,50,75,100,125]
 N_REPS = 100
 SHOW_UNCERTAINTY_BANDS = False
 # RESULTS_DIR = Path().resolve().parent / 'hypertuning-files' / 'results-all-compiled'
