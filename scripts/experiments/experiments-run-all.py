@@ -16,7 +16,7 @@ warnings.filterwarnings('ignore')
 os.environ['TUNE_DISABLE_STRICT_METRIC_CHECKING'] = '1'
 
 # ---- data loading and partitioning
-target = 'monash_m3_monthly'
+target = 'monash_m1_quarterly'
 
 # _, horizon, n_lags, _, _ = LongHorizonDatasetR.load_everything(target, resample_to='D')
 _, horizon, n_lags, _, _ = ChronosDataset.load_everything(target)
@@ -89,6 +89,6 @@ if __name__ == '__main__':
 
                 cv_inner.to_csv(inner_fp, index=False)
                 cv_outer.to_csv(outer_fp, index=False)
-            except NotImplementedError:
+            except (NotImplementedError, IndexError) as e:
                 print(f"Error on {model_nm},{target},{cfg_id}")
                 continue
