@@ -33,6 +33,7 @@ MODEL_LIST = [
     'TFT',
     'PatchTST',
     'GRU',
+    'Informer'
 ]
 
 RESULTS_DIR = Path().resolve().parent / 'hypertuning-files' / 'results-all-compiled'
@@ -138,13 +139,13 @@ def evaluate_model(model: str, scores_df: pd.DataFrame) -> pd.DataFrame:
 
         scores_sub = scores_df.query(f'dataset!="{target}"').drop(columns='dataset')
 
-        at_list = active_testing_selection(
-            scores_df=scores_sub,
-            use_ranks=False,
-            max_trials=SAFE_N_TRIALS,
-            corr_threshold=CORR_SELECTION,
-            delta=0.01,
-        )
+        # at_list = active_testing_selection(
+        #     scores_df=scores_sub,
+        #     use_ranks=False,
+        #     max_trials=SAFE_N_TRIALS,
+        #     corr_threshold=CORR_SELECTION,
+        #     delta=0.01,
+        # )
 
         atr_list = active_testing_selection(
             scores_df=scores_sub,
@@ -154,11 +155,11 @@ def evaluate_model(model: str, scores_df: pd.DataFrame) -> pd.DataFrame:
             delta=0.01,
         )
 
-        bt_list = bradley_terry_ranking(
-            scores_df=scores_sub,
-            max_trials=SAFE_N_TRIALS,
-            corr_threshold=CORR_SELECTION,
-        )
+        # bt_list = bradley_terry_ranking(
+        #     scores_df=scores_sub,
+        #     max_trials=SAFE_N_TRIALS,
+        #     corr_threshold=CORR_SELECTION,
+        # )
 
         rs_configs = filter_configs_in_errors(
             err_inner.sample(N_TRIALS).index.tolist(), err_inner
@@ -167,9 +168,9 @@ def evaluate_model(model: str, scores_df: pd.DataFrame) -> pd.DataFrame:
         scores_f.append({
             'Dataset': target,
             'RS': err_outer[best_config_after_trials(err_inner, rs_configs)],
-            'AT': err_outer[best_config_after_trials(err_inner, at_list)],
-            'ATR': err_outer[best_config_after_trials(err_inner, atr_list)],
-            'PL': err_outer[best_config_after_trials(err_inner, bt_list)],
+            # 'AT': err_outer[best_config_after_trials(err_inner, at_list)],
+            'AT': err_outer[best_config_after_trials(err_inner, atr_list)],
+            # 'PL': err_outer[best_config_after_trials(err_inner, bt_list)],
         })
 
     return pd.DataFrame(scores_f)

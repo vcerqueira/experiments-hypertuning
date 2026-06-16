@@ -11,6 +11,7 @@ MODEL_LIST = [
     'TFT',
     'PatchTST',
     'GRU',
+    'Informer'
 ]
 
 RESULTS_DIR = Path('assets/results')

@@ -28,7 +28,8 @@ MODEL_LIST = [
     'NHITS',
     'TFT',
     'PatchTST',
-    'GRU'
+    'GRU',
+    'Informer'
 ]
 
 LEARNING_CURVE = [1, 2, 5, 10, 15, 25, 50, 75, 100, 200, 300, 400, 500]
@@ -80,7 +81,7 @@ def build_scores_long(model_scores):
     return scores_df, scores_long
 
 
-def plot_learning_curve(scores_long, target):
+def plot_learning_curve(scores_long, target, y_label: str = 'MASE'):
     df = scores_long.copy()
     df['n_samples'] = pd.to_numeric(df['n_samples'], errors='coerce')
     df = df.sort_values(['model', 'n_samples'])
@@ -104,7 +105,7 @@ def plot_learning_curve(scores_long, target):
             + p9.scale_x_log10()
             + p9.labs(
         x='Number of sampled configs',
-        y='MASE',
+        y=y_label,
         color='Model',
         fill='Model',
     )
@@ -115,6 +116,26 @@ def plot_learning_curve(scores_long, target):
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     p.save(OUTPUT_DIR / f'rs_lc,{target}.pdf', width=8, height=6)
 
+
+def average_rank_across_datasets(scores_by_dataset: dict[str, pd.DataFrame]) -> pd.DataFrame:
+    ranked = []
+    for dataset, df in scores_by_dataset.items():
+        r = df[['model', 'n_samples', 'score']].copy()
+        r['rank'] = r.groupby('n_samples')['score'].rank(method='average', ascending=True)
+        r['dataset'] = dataset
+        ranked.append(r)
+
+    combined = pd.concat(ranked, ignore_index=True)
+    return (
+        combined.groupby(['model', 'n_samples'], as_index=False)['rank']
+        .mean()
+        .rename(columns={'rank': 'score'})
+        .sort_values(['model', 'n_samples'])
+    )
+
+
+PLOT_N_SAMPLES = LEARNING_CURVE[2:]
+scores_by_dataset: dict[str, pd.DataFrame] = {}
 
 for target in DATASETS:
     print(f'\n=== {target} ===')
@@ -171,5 +192,14 @@ for target in DATASETS:
     scores_df, scores_long = build_scores_long(model_scores)
     print(scores_df)
 
-    scores_long = scores_long[scores_long['n_samples'].isin(LEARNING_CURVE[2:])]
+    scores_long = scores_long[scores_long['n_samples'].isin(PLOT_N_SAMPLES)]
+    scores_by_dataset[target] = scores_long
     plot_learning_curve(scores_long, target)
+
+if scores_by_dataset:
+    avg_rank_long = average_rank_across_datasets(scores_by_dataset)
+    print('\n=== mean rank across datasets ===')
+    print(
+        avg_rank_long.pivot(index='n_samples', columns='model', values='score')
+    )
+    plot_learning_curve(avg_rank_long, 'average_rank', y_label='Mean rank')

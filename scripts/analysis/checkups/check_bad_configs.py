@@ -4,7 +4,7 @@ from src.config import N_SAMPLES, SEED
 from src.neural.config_pool import NEURAL_CONFIG_POOL
 from src.neural.param_samples import ConfigSampler
 
-model = 'TFT'
+model = 'Informer'
 
 config_pool = NEURAL_CONFIG_POOL[model]
 config_list = ConfigSampler.generate_samples(config_pool=config_pool,
