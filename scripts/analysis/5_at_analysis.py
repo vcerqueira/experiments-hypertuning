@@ -21,7 +21,7 @@ for n_trials in N_TRIALS:
     model_scores = []
     for model in MODEL_LIST:
         df_model = pd.read_csv(RESULTS_DIR / f'search,{n_trials},{model}.csv', index_col='Dataset')
-        df_model = df_model.drop(columns=['AT']).rename(columns={'ATR': 'AT'})
+        df_model = df_model#.drop(columns=['AT']).rename(columns={'ATR': 'AT'})
 
         scr = df_model.mean()
         # scr = df.median()
