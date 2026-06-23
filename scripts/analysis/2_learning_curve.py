@@ -16,7 +16,7 @@ DATASETS = [
     # 'monash_tourism_monthly',
     # 'monash_m3_quarterly',
     # 'monash_m3_monthly',
-    # 'monash_m1_monthly',
+    'monash_m1_monthly',
     'monash_m1_quarterly',
     # 'TrafficL',
     # 'ECL',
