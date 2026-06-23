@@ -8,11 +8,10 @@ from utilsforecast.losses import mase
 from src.loaders import ChronosDataset, LongHorizonDatasetR
 from src.utils.reading_data import read_cv_results
 from src.coseal.active_testing import active_testing_selection
-from src.coseal.preference import bradley_terry_ranking
 
 CORR_SELECTION = 0.9
-N_TRIALS = 100
-SAFE_N_TRIALS = 200  # to ensure we actually get N_TRIALS for each... (some configs are not in some datasets)
+N_TRIALS = 5
+SAFE_N_TRIALS = 15  # to ensure we actually get N_TRIALS for each... (some configs are not in some datasets)
 # final value is N_TRIALS like err_inner[at_configs].head(N_TRIALS).idxmin()
 
 DATASETS = [
@@ -35,6 +34,8 @@ MODEL_LIST = [
     'GRU',
     'Informer'
 ]
+
+SEARCH_METHOD = 'AT'
 
 RESULTS_DIR = Path().resolve().parent / 'hypertuning-files' / 'results-all-compiled'
 OUTPUT_DIR = Path('assets/results')
@@ -103,8 +104,8 @@ def build_meta_scores_df(model: str) -> pd.DataFrame | None:
     return pd.concat(scores).set_index('unique_id')
 
 
-def evaluate_model(model: str, scores_df: pd.DataFrame) -> pd.DataFrame:
-    scores_f = []
+def evaluate_model(model: str, scores_df: pd.DataFrame):
+    scores_f, ext_scores_df = [], []
     for target in DATASETS:
         print(f'  evaluate: {target}')
         in_set, in_set_train, seas_len = load_dataset(target)
@@ -136,16 +137,9 @@ def evaluate_model(model: str, scores_df: pd.DataFrame) -> pd.DataFrame:
 
         err_inner = radar_inner.evaluate(keep_uids=False)
         err_outer = radar_outer.evaluate(keep_uids=False)
+        err_outer_ext = radar_outer.evaluate(keep_uids=True)
 
         scores_sub = scores_df.query(f'dataset!="{target}"').drop(columns='dataset')
-
-        # at_list = active_testing_selection(
-        #     scores_df=scores_sub,
-        #     use_ranks=False,
-        #     max_trials=SAFE_N_TRIALS,
-        #     corr_threshold=CORR_SELECTION,
-        #     delta=0.01,
-        # )
 
         atr_list = active_testing_selection(
             scores_df=scores_sub,
@@ -155,25 +149,33 @@ def evaluate_model(model: str, scores_df: pd.DataFrame) -> pd.DataFrame:
             delta=0.01,
         )
 
-        # bt_list = bradley_terry_ranking(
-        #     scores_df=scores_sub,
-        #     max_trials=SAFE_N_TRIALS,
-        #     corr_threshold=CORR_SELECTION,
-        # )
-
         rs_configs = filter_configs_in_errors(
             err_inner.sample(N_TRIALS).index.tolist(), err_inner
         )
 
-        scores_f.append({
+        if SEARCH_METHOD == 'AT':
+            scr = err_outer_ext[best_config_after_trials(err_inner, atr_list)]
+        else:
+            scr = err_outer_ext[best_config_after_trials(err_inner, rs_configs)]
+
+        scr.name = None
+        scr.index = scr.index.map(lambda idx: f'{target}_{idx}')
+        scr = scr.reset_index(inplace=False)
+        scr.columns = ['unique_id', 'score']
+
+        condensed_scr = {
             'Dataset': target,
             'RS': err_outer[best_config_after_trials(err_inner, rs_configs)],
-            # 'AT': err_outer[best_config_after_trials(err_inner, at_list)],
             'AT': err_outer[best_config_after_trials(err_inner, atr_list)],
-            # 'PL': err_outer[best_config_after_trials(err_inner, bt_list)],
-        })
+        }
 
-    return pd.DataFrame(scores_f)
+        scores_f.append(condensed_scr)
+        ext_scores_df.append(scr)
+
+    ext_scr_df = pd.concat(ext_scores_df, axis=0).reset_index(drop=True)
+    scr_df = pd.DataFrame(scores_f)
+
+    return scr_df, ext_scr_df
 
 
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -182,17 +184,12 @@ for model in MODEL_LIST:
     print(f'\n=== {model} ===')
 
     scores_df = build_meta_scores_df(model)
-    if scores_df is None:
-        print(f'No meta scores for {model}, skipping.')
-        continue
 
-    model_final_scrs = evaluate_model(model, scores_df)
-    if model_final_scrs.empty:
-        print(f'No evaluation results for {model}, skipping save.')
-        continue
+    model_final_scrs, ext_model_final_scrs = evaluate_model(model, scores_df)
 
     out_path = OUTPUT_DIR / f'search,{N_TRIALS},{model}.csv'
+    ext_out_path = OUTPUT_DIR / f'extended_search,{N_TRIALS},{model}.csv'
     model_final_scrs.to_csv(out_path, index=False)
-    print(model_final_scrs)
+    ext_model_final_scrs.to_csv(ext_out_path, index=False)
+
     print(f'Saved {out_path}')
-    print(model_final_scrs.set_index('Dataset').rank(axis=1).mean())
