@@ -12,14 +12,14 @@ from src.utils.reading_data import read_cv_results
 from src.utils.plotting import THEME
 
 DATASETS = [
-    'monash_tourism_quarterly',
-    'monash_tourism_monthly',
-    'monash_m3_quarterly',
-    'monash_m3_monthly',
-    'monash_m1_monthly',
+    # 'monash_tourism_quarterly',
+    # 'monash_tourism_monthly',
+    # 'monash_m3_quarterly',
+    # 'monash_m3_monthly',
+    # 'monash_m1_monthly',
     'monash_m1_quarterly',
-    'TrafficL',
-    'ECL',
+    # 'TrafficL',
+    # 'ECL',
 ]
 
 MODEL_LIST = [
@@ -35,6 +35,8 @@ MODEL_LIST = [
 LEARNING_CURVE = [1, 2, 5, 10, 15, 25, 50, 75, 100, 200, 300, 400, 500]
 N_REPS = 100
 SHOW_UNCERTAINTY_BANDS = False
+DROP_OUTLIER_SCORES = False
+MAX_SCORE = 2
 RESULTS_DIR = Path().resolve().parent / 'hypertuning-files' / 'results-all-compiled'
 OUTPUT_DIR = Path('assets/outputs')
 
@@ -85,6 +87,8 @@ def plot_learning_curve(scores_long, target, y_label: str = 'MASE'):
     df = scores_long.copy()
     df['n_samples'] = pd.to_numeric(df['n_samples'], errors='coerce')
     df = df.sort_values(['model', 'n_samples'])
+    if DROP_OUTLIER_SCORES:
+        df = df[df['score'] <= MAX_SCORE]
 
     p = p9.ggplot(
         df,
