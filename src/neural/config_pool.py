@@ -131,25 +131,6 @@ NEURAL_CONFIG_POOL = {
         "random_seed": tune.randint(1, 20),
     },
 
-    'Autoformer': {
-        "input_size_multiplier": tune.choice([1, 2]),
-        "hidden_size": tune.choice([16, 32, 64, 128]),
-        "conv_hidden_size": tune.choice([8, 16, 32]),
-        "factor": tune.choice([1, 2, 3]),
-        "encoder_layers": tune.choice([1, 2, 3]),
-        "dropout": tune.choice([0.05, 0.1, 0.15]),
-        "decoder_layers": tune.choice([1, 2]),
-        "MovingAvg_window": tune.choice([5, 15, 25]),
-        "activation": tune.choice(['gelu', "relu"]),
-        "n_head": tune.choice([2, 4]),
-        "learning_rate": tune.loguniform(1e-4, 1e-1),
-        "scaler_type": tune.choice([None, "robust", "standard"]),
-        "max_steps": tune.choice([500, 1000, 1500]),
-        "batch_size": tune.choice([32, 64, 128]),
-        "windows_batch_size": tune.choice([128, 256, 512, 1024]),
-        "random_seed": tune.randint(1, 20),
-    },
-
     'Informer': {
         "input_size_multiplier": tune.choice([1, 2, 3]),
         "hidden_size": tune.choice([32, 64, 128, 256]),
