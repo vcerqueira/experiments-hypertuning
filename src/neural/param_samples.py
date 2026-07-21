@@ -10,18 +10,6 @@ from src.config import SEED, N_SAMPLES
 
 
 class ConfigSampler:
-    # from ray import tune
-    #
-    # config_space_ = {
-    #     "n_pool_kernel_size": tune.choice([2, 3, 5]),
-    #     "learning_rate": tune.loguniform(1e-4, 1e-1),
-    #     "batch_size": tune.choice([16, 32, 64]),
-    #     "activation": "relu"
-    # }
-    #
-    # sample_list_ = ConfigSampler.generate_samples(config_space_, num_samples=4)
-    #
-    # df = pd.DataFrame(sample_list_).set_index('config_id')
 
     MISC_BAD_CONFIGS = ['fd1d8da7684e79a15d7d',
                         '2b034fe8fd6d9ee361de',

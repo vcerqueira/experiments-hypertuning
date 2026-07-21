@@ -9,16 +9,6 @@ from dotenv import load_dotenv
 from src.loaders.base import DatasetLoader
 
 
-# load_dotenv()
-# DATASET_PATH = Path(os.environ["DATA_DIR"])
-# ds, *_ = LongHorizon.load(directory=DATASET_PATH, group='Weather')
-# ds['unique_id'].value_counts()
-# print(ds)
-
-# ds, *_ = LongHorizonDatasetR.load_everything(group='ETTm1', resample_to='H')
-# ds['unique_id'].value_counts()
-
-
 class LongHorizonDataset(DatasetLoader):
     load_dotenv()
     DATASET_PATH = Path(os.environ["DATA_DIR"])
@@ -139,4 +129,3 @@ class LongHorizonDatasetR(LongHorizonDataset):
             return hourly_df, d_horizon, d_n_lags, freq, seas_len
         else:
             raise NotImplementedError
-

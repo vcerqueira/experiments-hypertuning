@@ -177,7 +177,6 @@ for target in DATASETS:
             rel_or_list.append(pd.Series(rel_ot))
 
         model_rel_ot[model] = rel_or_list
-        # print(pd.DataFrame(rel_or_list).mean())
 
     overtuning_long = build_overtuning_long(model_rel_ot)
     plot_overtuning(overtuning_long, target)

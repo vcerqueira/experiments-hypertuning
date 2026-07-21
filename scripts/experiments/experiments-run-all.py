@@ -25,10 +25,6 @@ df, horizon, n_lags, freq, seas_len = ChronosDataset.load_everything(target, min
 #                                                                           min_n_instances=2 * (n_lags + horizon),
 #                                                                           resample_to='D')
 
-# df = LongHorizonDatasetR.get_uid_tails(df, 2000)
-# df['y'] = df['y'].round(3)
-# df['y'] = df['y'].astype(np.float32)
-
 print(df.head())
 print(df['y'].iloc[0])
 print(df['unique_id'].value_counts())
